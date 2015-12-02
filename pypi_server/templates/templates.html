@@ -1,0 +1,54 @@
+<script type="text/ng-template" id="errorTmpl">
+    <div class="modal-header">
+        <h3 class="modal-title" ng-bind="title"></h3>
+    </div>
+    <div class="modal-body">
+        <div ng-bind="text"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger" ng-click="cancel()">Закрыть</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="confirmTmpl">
+    <div class="modal-header">
+        <h3 class="modal-title" ng-bind="title"></h3>
+    </div>
+    <div class="modal-body">
+        <div ng-bind="text"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" ng-click="ok()">Да</button>
+        <button class="btn btn-danger" ng-click="cancel()">Нет</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="alertTmpl">
+    <div class="modal-header">
+        <h3 class="modal-title" ng-bind="title"></h3>
+    </div>
+    <div class="modal-body">
+        <div ng-bind="text"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" ng-click="ok()">Ok</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="editTmpl">
+    <div class="modal-header">
+        <h3 class="modal-title" ng-bind="title"></h3>
+    </div>
+    <div class="modal-body">
+        <form name="form">
+            <div class="form-group">
+                <label for="editValue" ng-bind="text"></label>
+                <input class="form-control" id="editValue" ng-model="value"/>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="ok()">Применить</button>
+        <button class="btn btn-warning" ng-click="cancel()">Отмена</button>
+    </div>
+</script>

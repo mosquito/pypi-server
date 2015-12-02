@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block "title" %}Simple index{% end %}
+
+{% block "body" %}
+    <h1>Package list</h1>
+    {% for pkg in packages %}
+    <a href="{{ pkg.name }}" class="package" rel="internal">{{ pkg.name }}</a>
+    {% end %}
+
+{% end %}

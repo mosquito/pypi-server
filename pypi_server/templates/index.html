@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="application-name" content="LWP"/>
+
+    {% for item in styles %}
+    <link rel="stylesheet" href="{{ item }}"/>{% end %}
+
+    {% for lib in vendor %}
+    <script type="application/javascript" src="{{ lib }}"></script>{% end %}
+
+    {% for lib in application %}
+    <script type="application/javascript" src="{{ lib }}"></script>{% end %}
+
+    <title>LXC Web Panel</title>
+</head>
+
+<body ng-app="PYPI">
+
+<div ng-controller="indexCtrl">
+    <div id="loader" ng-show="!$root.loader.toBool()">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<div class="col-md-12 content"></div>
+
+{% include "templates.html" %}
+
+</body>
+</html>

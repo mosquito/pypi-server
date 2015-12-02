@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block "title" %}List of package {{ package }}{% end %}
+
+{% block "body" %}
+    <!--<a href="../../packages/2.7/c/crew/crew-0.9.0-py2-none-any.whl#md5=78cdd4992979733c29f6b3f220684b9f" rel="internal">crew-0.9.0-py2-none-any.whl</a><br/>-->
+    <h1>Files for {{ package }}</h1>
+    {% for file in files %}
+    <a href="{{ file.version.version }}/{{ file.basename }}#md5={{ file.md5 }}" rel="internal" class="file">{{ file.basename }}</a>
+    {% end %}
+
+{% end %}
