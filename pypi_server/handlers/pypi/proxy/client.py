@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import logging
 from copy import copy
@@ -7,10 +6,15 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.locks import Lock
 from tornado_xmlrpc.client import ServerProxy
-from ....cache import Cache
-from ....hash_version import HashVersion
+from pypi_server.cache import Cache
+from pypi_server.hash_version import HashVersion
+
 
 log = logging.getLogger(__name__)
+
+
+def normalize_package_name(name):
+    return name.lower().replace("_", "-")
 
 
 class PYPIClient(object):
@@ -71,7 +75,7 @@ class PYPIClient(object):
     @classmethod
     @coroutine
     def find_real_name(cls, name):
-        name = name.lower().replace("_", "-")
+        name = normalize_package_name(name)
 
         packages = yield cls.packages()
         real_name = packages.get(name.lower())

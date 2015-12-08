@@ -1,14 +1,12 @@
 # encoding: utf-8
-import re
 from peewee import DoesNotExist
-from pypi_server.cache import Cache
+from tornado.web import HTTPError
 from pypi_server.db.users import Users
 from pypi_server.handlers import route
 from pypi_server.handlers.base import threaded
-from tornado.web import HTTPError
-from .login import authorization_required
-from . import JSONHandler
-from .users import LOGIN_EXP, EMAIL_EXP
+from pypi_server.handlers.api import JSONHandler
+from pypi_server.handlers.api.login import authorization_required
+from pypi_server.handlers.api.users import LOGIN_EXP, EMAIL_EXP
 
 
 @route('/api/v1/user/(\d+)/?')

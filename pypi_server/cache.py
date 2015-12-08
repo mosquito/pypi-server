@@ -1,14 +1,14 @@
 # encoding: utf-8
 import logging
-from collections import namedtuple, defaultdict
+import signal
+from time import time
 from functools import wraps
 from inspect import isgeneratorfunction
-from time import time
+from collections import namedtuple, defaultdict
+from multiprocessing import RLock
 from tornado.gen import Return, sleep
 from tornado.ioloop import IOLoop
 from tornado.locks import Lock
-from multiprocessing import RLock
-import signal
 
 
 FunctionType = type(lambda: None)
@@ -79,6 +79,7 @@ class Cache(object):
             io_loop = IOLoop.current()
 
             args_key = get_hash(func, args, kwargs)
+            start_time = io_loop.time()
 
             with self.RLOCKS[args_key]:
                 ret = self.CACHE.get(args_key)
@@ -98,7 +99,12 @@ class Cache(object):
                     args_key
                 )
 
-                log.debug("MISS Cache [%s] %r", key, args_key)
+                log.debug(
+                    "MISS Cache [%s] %r. Execution time %.6f sec.",
+                    key,
+                    args_key,
+                    io_loop.time() - start_time
+                )
                 return ret.result
 
         @wraps(func)
@@ -106,6 +112,7 @@ class Cache(object):
             io_loop = IOLoop.current()
 
             args_key = get_hash(func, args, kwargs)
+            start_time = io_loop.time()
 
             with (yield self.FUTURE_LOCKS[args_key].acquire()):
                 ret = self.CACHE.get(args_key)
@@ -137,7 +144,12 @@ class Cache(object):
                         args_key
                     )
 
-                    log.debug("MISS Cache [%s] %r", key, args_key)
+                    log.debug(
+                        "MISS Cache [%s] %r. Execution time %.6f sec.",
+                        key,
+                        args_key,
+                        io_loop.time() - start_time
+                    )
                 else:
                     log.warning(
                         "Generator '%s' no return any value. Cache ignoring.",

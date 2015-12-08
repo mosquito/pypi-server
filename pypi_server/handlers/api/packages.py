@@ -1,14 +1,9 @@
 # encoding: utf-8
-import peewee
-from collections import defaultdict
-from peewee import DoesNotExist
-from pypi_server.cache import Cache
 from pypi_server.db.packages import Package, PackageVersion, PackageFile
-from pypi_server.db.users import Users
 from pypi_server.handlers import route
+from pypi_server.handlers.api import JSONHandler
 from pypi_server.handlers.base import threaded
-from .login import authorization_required
-from . import JSONHandler
+from pypi_server.handlers.api.login import authorization_required
 
 
 @route('/api/v1/packages/?')

@@ -2,8 +2,7 @@
 # encoding: utf-8
 import peewee as p
 from playhouse.fields import PasswordField
-from pypi_server.handlers.base import threaded
-from . import Model
+from pypi_server.db import Model
 
 
 class Users(Model):

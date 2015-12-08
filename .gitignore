@@ -54,7 +54,7 @@ docs/_build/
 
 /dist
 /buid
-/env
+/env*
 /.idea
 
 /packages

@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 # encoding: utf-8
-from . import MIGRATIONS, log
+from pypi_server.db.migrator import MIGRATIONS, log
 
 
 def migrate_db(DB, Migrations, migrator):

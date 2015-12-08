@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import datetime
 import peewee
-from .. import Model
+from pypi_server.db import Model
 
 
 class Migrations(Model):

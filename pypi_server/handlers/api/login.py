@@ -1,13 +1,13 @@
 # encoding: utf-8
 from functools import wraps
+from peewee import DoesNotExist
+from tornado.web import HTTPError
+from tornado.ioloop import IOLoop
+from tornado.gen import Return, coroutine, maybe_future
 from pypi_server.cache import Cache
 from pypi_server.db.users import Users
 from pypi_server.handlers import route
-from tornado.gen import Return, coroutine, maybe_future
-from tornado.ioloop import IOLoop
-from tornado.web import HTTPError
-from peewee import DoesNotExist
-from . import JSONHandler, threaded
+from pypi_server.handlers.api import JSONHandler, threaded
 
 
 SESSION_DAYS = 3

@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import uuid
 import errno
 import signal
 import os
+from slimurl import URL
 from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
 from tornado.log import gen_log as log
@@ -13,28 +13,36 @@ from tornado.concurrent import futures
 from tornado.web import Application
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import PeriodicCallback
-from . import ROOT
-from .handlers.pypi.proxy.client import PYPIClient
-from slimurl import URL
-from .db import init_db
-from .db.packages import PackageFile
-import handlers
+from pypi_server import ROOT
+from pypi_server.handlers.pypi.proxy.client import PYPIClient
+from pypi_server.db import init_db
+from pypi_server.db.packages import PackageFile
+from pypi_server import handlers
+
 
 define('config', help="Configuration file")
+
 define("address", help="Listen address (default 127.0.0.1) [ENV:ADDRESS]",
        default=os.getenv('ADDRESS', "127.0.0.1"))
+
 define("port", help="Listen port (default 8080) [ENV:PORT]",
        type=int, default=int(os.getenv('PORT', '8080')))
+
 define("debug", help="Use for attach a debugger",
        default=bool(os.getenv("DEBUG")), type=bool)
+
 define("gzip", help="Compress responses (default False) [ENV:GZIP]",
        default=bool(os.getenv("GZIP", '0')), type=bool)
+
 define("proxy-mode", help="Process X-headers on requests (default True) [ENV:PROXY_MODE]",
        default=bool(os.getenv('PROXY_MODE', '1')), type=bool)
-define("pool-size", help="Thread pool size (default cou_count) [ENV:POOL_SIZE]",
-       type=int, default=int(os.getenv('POOL_SIZE', cpu_count())))
+
+define("pool-size", help="Thread pool size (default cou_count * 2) [ENV:POOL_SIZE]",
+       type=int, default=int(os.getenv('POOL_SIZE', cpu_count() * 2)))
+
 define("secret", help="Cookie secret (default random) [ENV:SECRET]",
        default=os.getenv("SECRET", uuid.uuid4().bytes))
+
 define("storage", help="Packages storage (default $CWD/packages) [ENV:STORAGE]", type=os.path.abspath,
        default=os.getenv("STORAGE", os.path.join(os.path.abspath(os.path.curdir), 'packages')))
 
@@ -44,9 +52,9 @@ define(
     default=os.getenv(
         "DB",
         URL(
-            "sqlite://{0}".format("/".join(os.path.join(
+            "sqlite://{0}".format("/".join(
                 os.path.split(os.path.join(os.path.abspath(os.path.curdir), 'packages', 'metadata.db'))
-            )))
+            ))
         )
     )
 )

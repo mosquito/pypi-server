@@ -3,8 +3,8 @@ from pypi_server.db.packages import Package, PackageVersion, PackageFile
 from pypi_server.handlers import route
 from pypi_server.handlers.base import threaded
 from tornado.web import HTTPError
-from .login import authorization_required
-from . import JSONHandler
+from pypi_server.handlers.api.login import authorization_required
+from pypi_server.handlers.api import JSONHandler
 
 
 @route('/api/v1/package/(?P<package>[\w\.\d\-\_]+)/?')

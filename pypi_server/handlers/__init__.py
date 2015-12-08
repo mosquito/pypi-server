@@ -1,11 +1,9 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import os
 from tornado.gen import coroutine, maybe_future, Return
 from tornado.web import RedirectHandler, StaticFileHandler
-from .. import ROOT
-
-import base
+from pypi_server import ROOT
+from pypi_server.handlers import base
 
 
 ROUTES = [
@@ -41,7 +39,7 @@ def add_slash(cls):
     return WrappedClass
 
 
-from .default import DefaultHandler
-import index
-import pypi
-import api
+from pypi_server.handlers.default import DefaultHandler
+import pypi_server.handlers.index
+import pypi_server.handlers.pypi
+import pypi_server.handlers.api

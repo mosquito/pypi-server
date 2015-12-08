@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 from functools import wraps
 from tornado.web import RequestHandler

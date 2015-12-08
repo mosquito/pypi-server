@@ -1,11 +1,11 @@
 # encoding: utf-8
 import re
+from tornado.web import HTTPError
 from pypi_server.db.users import Users
 from pypi_server.handlers import route
 from pypi_server.handlers.base import threaded
-from tornado.web import HTTPError
-from .login import authorization_required
-from . import JSONHandler
+from pypi_server.handlers.api import JSONHandler
+from pypi_server.handlers.api.login import authorization_required
 
 
 LOGIN_EXP = re.compile("^[\d\w]+$")

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import logging
 
@@ -17,4 +16,4 @@ def migration(func):
     return func
 
 
-import migrations
+import pypi_server.db.migrator.migrations

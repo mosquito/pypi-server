@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 from distutils.version import LooseVersion
 from functools import total_ordering

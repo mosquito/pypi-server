@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from tornado import httputil
-from .base import BaseHandler
+from pypi_server.handlers.base import BaseHandler
 
 
 class DefaultHandler(BaseHandler):

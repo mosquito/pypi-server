@@ -1,5 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
-from .packages import PackagesHandler
-from .files import VersionsHandler
-
+from pypi_server.handlers.pypi.simple.packages import PackagesHandler
+from pypi_server.handlers.pypi.simple.files import VersionsHandler

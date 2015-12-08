@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import absolute_import, print_function
-from setuptools import setup, find_packages
 import os
 import pypi_server
+from setuptools import setup, find_packages
 
 
 REQUIREMENTS = (
     'tornado>=4.3',
-    'lxml',
-    'slimurl',
     'tornado-xmlrpc',
+    'slimurl',
     'peewee',
     'bcrypt',
+    'lxml',
+    'futures',
 )
-
-
-if pypi_server.PY2:
-    REQUIREMENTS += ('futures',)
 
 
 def walker(base, *paths):
@@ -34,6 +31,15 @@ def walker(base, *paths):
         os.chdir(cur_dir)
 
     return list(file_list)
+
+
+data_files = ()
+
+if os.geteuid() == 0:
+    data_files = (
+        ("/etc/systemd/system", (os.path.join('contrib', 'pypi-server.service'),)),
+        ("/etc", (os.path.join('contrib', 'pypi-server.conf'),))
+    )
 
 
 setup(
@@ -54,10 +60,7 @@ setup(
     package_data={
         'pypi_server': walker(os.path.dirname(pypi_server.__file__), 'static', 'templates'),
     },
-    data_files=(
-        ("/etc/systemd/system", (os.path.join('contrib', 'pypi-server.service'),)),
-        ("/etc", (os.path.join('contrib', 'pypi-server.conf'),))
-    ),
+    data_files=data_files,
     entry_points={
         'console_scripts': [
             'pypi-server = pypi_server.server:run',
@@ -65,4 +68,8 @@ setup(
     },
     packages=find_packages(exclude=('tests',)),
     install_requires=REQUIREMENTS,
+    extras_require={
+        'mysql': ['mysql-python'],
+        'postgres': ['psycopg2'],
+    }
 )

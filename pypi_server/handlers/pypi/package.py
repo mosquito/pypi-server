@@ -1,22 +1,27 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import base64
 import hashlib
 import logging
 from functools import wraps
-
 from peewee import DoesNotExist
+from pypi_server import PY2
 from pypi_server.db import DB
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from tornado.gen import coroutine, Task, maybe_future, Return
 from tornado.web import asynchronous, HTTPError
-from urllib import unquote_plus
-from .. import route
-from ..base import BaseHandler, threaded
-from ...http_cache import HTTPCache
-from ...cache import Cache, HOUR, MONTH
-from ...db.packages import Package, PackageVersion, PackageFile, HashVersion
-from ...db.users import Users
+from pypi_server.handlers import route
+from pypi_server.handlers.base import BaseHandler, threaded
+from pypi_server.http_cache import HTTPCache
+from pypi_server.cache import Cache, HOUR, MONTH
+from pypi_server.db.packages import Package, PackageVersion, PackageFile, HashVersion
+from pypi_server.db.users import Users
+
+
+if PY2:
+    from urllib import unquote_plus
+else:
+    from urllib.parse import unquote_plus
+
 
 log = logging.getLogger(__name__)
 

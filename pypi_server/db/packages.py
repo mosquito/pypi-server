@@ -2,15 +2,15 @@
 # encoding: utf-8
 import hashlib
 import datetime
-
-from multiprocessing import RLock
-
 import os
 import peewee as p
+from multiprocessing import RLock
 from playhouse.kv import JSONField
-from . import Model, DB
-from .users import Users
-from ..hash_version import HashVersion
+from pypi_server.timeit import timeit
+from pypi_server.hash_version import HashVersion
+from pypi_server.db import Model, DB
+from pypi_server.db.users import Users
+
 
 try:
     import cPickle as pickle
@@ -18,23 +18,30 @@ except ImportError:
     import pickle
 
 
-class File(file):
-    __slots__ = ('__close_callbacks',)
+class File(object):
+    __slots__ = ('__close_callbacks', '__file')
 
     def __init__(self, name, mode='rb'):
         self.__close_callbacks = set()
-        super(File, self).__init__(name, mode)
+        self.__file = open(name, mode)
 
     def add_close_callback(self, cb):
         self.__close_callbacks.add(cb)
 
     def close(self):
-        super(File, self).close()
+        self.__file.close()
+
         for cb in list(self.__close_callbacks):
             try:
-                cb(self)
+                cb(self.__file)
             except:
                 pass
+
+    def __enter__(self):
+        return self.__file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 class VersionField(p.CharField):
@@ -69,21 +76,51 @@ class Package(Model):
     stable_version = VersionField(null=True)
     is_proxy = p.BooleanField(default=False, null=False)
 
-    def versions(self, show_hidden=False):
-        return PackageVersion.select(
-            PackageVersion.version,
-            PackageVersion.package,
-        ).where(
-            PackageVersion.package == self,
-            PackageVersion.hidden == show_hidden
-        ).order_by(PackageVersion.version.desc())
+    @timeit
+    def files(self):
+        return sorted(
+            PackageFile.select(
+                Package,
+                PackageVersion,
+                PackageFile
+            ).join(
+                PackageVersion
+            ).join(
+                Package
+            ).where(
+                Package.id == self.id,
+                PackageVersion.hidden == False,
+            ).order_by(
+                Package.name.asc(),
+            ),
+            key=lambda x: x.version.version,
+            reverse=True,
+        )
 
+    @timeit
+    def versions(self, show_hidden=False):
+        return sorted(
+            PackageVersion.select(
+                Package,
+                PackageVersion
+            ).join(
+                Package
+            ).where(
+                PackageVersion.package == self,
+                PackageVersion.hidden == show_hidden
+            ),
+            key=lambda x: x.version,
+            reverse=True
+        )
+
+    @timeit
     def find_version(self, name):
         return PackageVersion.get(
             PackageVersion.package == self,
             PackageVersion.version == HashVersion(name),
         )
 
+    @timeit
     def create_version(self, name):
         with DB.transaction():
             q = PackageVersion.select(
@@ -106,6 +143,7 @@ class Package(Model):
         return version
 
     @classmethod
+    @timeit
     def get_or_create(cls, name, proxy=False):
         if not Package.select().where(Package.name == name).count():
             pkg = Package(name=name, lower_name=name.lower(), is_proxy=proxy, owner=None)
@@ -113,6 +151,22 @@ class Package(Model):
             return pkg
 
         return Package.get(name=name)
+
+    @classmethod
+    @timeit
+    def find(cls, name):
+        q = Package.select().join(
+            PackageVersion
+        ).join(
+            PackageFile
+        ).where(
+            Package.lower_name == name.lower()
+        ).limit(1)
+
+        if q.count():
+            return q[0]
+
+        raise LookupError('Package not found')
 
 
 class PackageVersion(Model):
@@ -142,15 +196,18 @@ class PackageVersion(Model):
     obsoletes_dist = JSONField(default=[])
     project_url = p.CharField(max_length=255, null=True)
 
+    @timeit
     def files(self):
         return PackageFile.select().where(
             PackageFile.package == self.package,
             PackageFile.version == self
         )
 
+    @timeit
     def find_file(self, name):
         return PackageFile.select().where(PackageFile.basename == name)
 
+    @timeit
     def create_file(self, name):
         name = os.path.basename(name)
         pkg_file = PackageFile(
@@ -168,6 +225,7 @@ class PackageVersion(Model):
         pkg_file.save()
         return pkg_file
 
+    @timeit
     def update_metadata(self, metadata):
         print (metadata)
 
@@ -188,9 +246,11 @@ class PackageFile(Model):
     def set_storage(cls, path):
         cls.file.STORAGE = path
 
+    @timeit
     def exists(self):
         return os.path.exists(self.file) and not os.path.isdir(self.file)
 
+    @timeit
     def open(self, mode='rb'):
         dirname = os.path.dirname(self.file)
 

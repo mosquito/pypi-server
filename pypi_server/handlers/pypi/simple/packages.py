@@ -1,12 +1,11 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import os
 from tornado.gen import coroutine, Return
 from tornado_xmlrpc.handler import XMLRPCHandler
-from ... import route, add_slash
-from ...base import BaseHandler, threaded
-from ...pypi.proxy.client import PYPIClient
-from ....db.packages import Package, PackageVersion, PackageFile
+from pypi_server.handlers import route, add_slash
+from pypi_server.handlers.base import BaseHandler, threaded
+from pypi_server.handlers.pypi.proxy.client import PYPIClient
+from pypi_server.db.packages import Package, PackageVersion, PackageFile
 
 
 @route(r'/simple/?')

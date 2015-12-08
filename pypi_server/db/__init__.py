@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 import logging
 import os
@@ -43,8 +42,8 @@ def init_mysql(url):
         user=url.user or '',
         password=url.password or '',
         host=url.host,
-        autocommit=bool(url.get('autocommit', '')),
-        autorollback=bool(url.get('autorollback', ''))
+        autocommit=bool(url.get('autocommit', True)),
+        autorollback=bool(url.get('autorollback', True))
     ))
 
     return DB, MySQLMigrator(DB)
@@ -57,8 +56,8 @@ def init_postgres(url):
         user=url.user or '',
         password=url.password or '',
         host=url.host,
-        autocommit=bool(url.get('autocommit', '')),
-        autorollback=bool(url.get('autorollback', ''))
+        autocommit=bool(url.get('autocommit', True)),
+        autorollback=bool(url.get('autorollback', True))
     ))
 
     return DB, PostgresqlMigrator

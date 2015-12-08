@@ -2,10 +2,10 @@
 # encoding: utf-8
 import os
 from tornado.gen import coroutine
-from . import route
-from .base import BaseHandler, threaded
-from ..http_cache import HTTPCache
-from ..cache import Cache
+from pypi_server.handlers import route
+from pypi_server.handlers.base import BaseHandler, threaded
+from pypi_server.http_cache import HTTPCache
+from pypi_server.cache import Cache
 
 
 @route(r"^/$")

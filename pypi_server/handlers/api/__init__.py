@@ -1,10 +1,10 @@
-#!/usr/bin/env python
 # encoding: utf-8
-from pypi_server.handlers.base import BaseHandler, threaded
 from tornado.gen import coroutine
 from tornado.ioloop import IOLoop
 from tornado.log import app_log as log
 from tornado.web import HTTPError
+from pypi_server.handlers.base import BaseHandler, threaded
+
 
 try:
     import ujson as json
@@ -59,8 +59,8 @@ class JSONHandler(BaseHandler):
         return self._json
 
 
-import login
-import users
-import user
-import packages
-import package
+import pypi_server.handlers.api.login
+import pypi_server.handlers.api.users
+import pypi_server.handlers.api.user
+import pypi_server.handlers.api.packages
+import pypi_server.handlers.api.package
