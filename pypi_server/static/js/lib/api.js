@@ -30,36 +30,57 @@ angular.module("PYPI").factory('API', function($http, $q, $rootScope, modals) {
 					$rootScope.loader[url] = true;
 				}
 				if (handleErrors) {
-					modals.error("Error when processing " + url, response.data.error.message);
+					modals.error("Error when processing " + url, response.statusText);
 				}
 				defer.reject(response);
 			}
 		);
-
 		return defer.promise;
 	}
 
 	return {
-		hostname: function () {
-			return rest('/api/host/name', 'get');
+		login: {
+			check: function () {
+				return rest('/api/v1/login', 'get', null, false);
+			},
+			authorize: function (login, password) {
+				return rest('/api/v1/login', 'post', {login: login, password: password});
+			}
 		},
-		hostInfo: function () {
-			return rest('/api/host/info', 'get', null, false, true);
+		package: {
+			list: function () {
+				return rest('/api/v1/packages');
+			},
+			info: function (name) {
+				return rest('/api/v1/package/' + name + '/');
+			},
+			versionInfo: function (name, version) {
+				return rest('/api/v1/package/' + name + '/' + version + '/');
+			}
 		},
-		containers: function () {
-			return rest('/api/container', 'get', null, false, true);
-		},
-		containerInfo: function (name) {
-			return rest('/api/container/' + name, 'get');
-		},
-		containerSetInfo: function (name, config) {
-			return rest('/api/container/' + name, 'put', {'config': config});
-		},
-		containerAction: function (name, action) {
-			return rest('/api/container/' + name, 'post', {action: action});
-		},
-		asyncTasks: function () {
-			return rest('/api/tasks/', 'get');
+		user: {
+			list: function () {
+				return rest('/api/v1/users/');
+			},
+			create: function (login, password, email, isAdmin) {
+				isAdmin = isAdmin || false;
+
+				return rest('/api/v1/users/', 'post', {
+					"is_admin": isAdmin,
+					"login": login,
+					"password": password,
+					"email": email
+				});
+			},
+			info: function (id) {
+				return rest('/api/v1/user/' + id + '/')
+			},
+			modify: function (id, user) {
+				return rest('/api/v1/user/' + id + '/', 'put', user);
+			},
+			delete: function (id) {
+				return rest('/api/v1/user/' + id + '/', 'delete');
+			}
 		}
 	};
 });

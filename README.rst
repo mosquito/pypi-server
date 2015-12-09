@@ -25,7 +25,7 @@ It's simple:
     pip install pypi-server
 
 
-If you want support non default database engine
+If you want to support postgres or mysql database:
 
     pip install 'pypi-server[postgres]' # or 'pypi-server[mysql]'
 

@@ -6,6 +6,7 @@ from pypi_server.handlers import route
 from pypi_server.handlers.base import BaseHandler, threaded
 from pypi_server.http_cache import HTTPCache
 from pypi_server.cache import Cache
+from pypi_server import ROOT
 
 
 @route(r"^/$")
@@ -14,16 +15,17 @@ class IndexHander(BaseHandler):
     @coroutine
     @Cache(60, ignore_self=True)
     def get(self):
-        base_dir = self.application.settings['base_dir']
-        vendor, application, styles = yield [
-            self.find(base_dir, 'static/vendor', '.js'),
-            self.find(base_dir, 'static/js', '.js'),
-            self.find(base_dir, 'static', 'style.css'),
+        vendor_js, vendor_css, application, styles = yield [
+            self.find(ROOT, 'static/vendor', '.js'),
+            self.find(ROOT, 'static/vendor', '.css'),
+            self.find(ROOT, 'static/js', '.js'),
+            self.find(ROOT, 'static', 'style.css'),
         ]
 
         self.render(
             'index.html',
-            vendor=vendor,
+            vendor_js=vendor_js,
+            vendor_css=vendor_css,
             application=application,
             styles=styles,
         )

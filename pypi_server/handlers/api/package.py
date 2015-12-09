@@ -2,6 +2,7 @@
 from pypi_server.db.packages import Package, PackageVersion, PackageFile
 from pypi_server.handlers import route
 from pypi_server.handlers.base import threaded
+from pypi_server.handlers.pypi.proxy.client import normalize_package_name
 from tornado.web import HTTPError
 from pypi_server.handlers.api.login import authorization_required
 from pypi_server.handlers.api import JSONHandler
@@ -12,6 +13,7 @@ class PackageHandler(JSONHandler):
     @authorization_required()
     @threaded
     def get(self, package):
+        package = normalize_package_name(package)
         q = Package.select().join(PackageVersion).where(Package.lower_name == package).limit(1)
 
         if not q.count():
@@ -43,6 +45,7 @@ class PackageVersionHandler(JSONHandler):
     @authorization_required()
     @threaded
     def get(self, package, version):
+        package = normalize_package_name(package)
         q = PackageVersion.select().join(Package).join(PackageFile).where(
             Package.lower_name == package,
             PackageVersion.version == version,

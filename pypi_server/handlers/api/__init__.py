@@ -18,10 +18,11 @@ class JSONHandler(BaseHandler):
     @coroutine
     def prepare(self, *args, **kwargs):
         content_type = self.request.headers.get('Content-Type', '')
-        if 'application/json' not in content_type:
-            raise HTTPError(400)
 
         if self.request.method.upper() in ('POST', 'PUT'):
+            if 'application/json' not in content_type:
+                raise HTTPError(400)
+
             self._json = yield self.thread_pool.submit(self._from_json, self.request.body)
         else:
             self._json = None

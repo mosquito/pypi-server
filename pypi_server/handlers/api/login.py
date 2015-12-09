@@ -77,7 +77,10 @@ class LoginHandler(JSONHandler):
 
     @threaded
     def post(self):
-        login, password = self.json['login'], self.json['password']
+        try:
+            login, password = self.json['login'], self.json['password']
+        except KeyError:
+            raise HTTPError(400)
 
         try:
             user = Users.check(login, password)

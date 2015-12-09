@@ -6,7 +6,7 @@
         <div ng-bind="text"></div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-danger" ng-click="cancel()">Закрыть</button>
+        <button class="btn btn-danger" ng-click="cancel()">Close</button>
     </div>
 </script>
 
@@ -18,8 +18,8 @@
         <div ng-bind="text"></div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-success" ng-click="ok()">Да</button>
-        <button class="btn btn-danger" ng-click="cancel()">Нет</button>
+        <button class="btn btn-success" ng-click="ok()">Yes</button>
+        <button class="btn btn-danger" ng-click="cancel()">No</button>
     </div>
 </script>
 
@@ -48,7 +48,29 @@
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="ok()">Применить</button>
-        <button class="btn btn-warning" ng-click="cancel()">Отмена</button>
+        <button class="btn btn-primary" ng-click="ok()">Apply</button>
+        <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
     </div>
 </script>
+
+<script type="text/ng-template" id="loginTmpl">
+    <div class="modal-header">
+        <h3 class="modal-title">Authorization required</h3>
+    </div>
+    <div class="modal-body">
+        <form name="form">
+            <div class="form-group">
+                <label for="login">Login</label>
+                <input class="form-control" id="login" ng-model="loginData.login" ng-enter="doLogin()"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input class="form-control" type="password" id="password" ng-model="loginData.password" ng-enter="doLogin()"/>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="doLogin()">Login</button>
+    </div>
+</script>
+

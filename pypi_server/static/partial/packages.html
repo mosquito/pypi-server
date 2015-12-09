@@ -1,0 +1,46 @@
+<div class="col-md-12" id="index-page">
+    <div>
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-1 hidden-xs">
+                    <b>#</b>
+                </div>
+                <div class="col-sm-5">
+                    <b>Name</b>
+                </div>
+                <div class="col-sm-4">
+                    <b>Owner</b>
+                </div>
+                <div class="col-sm-2">
+                    <b>Is proxy</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="well" ng-repeat="pkg in packages track by $index">
+            <div class="row" ng-click="pkgInfo(pkg)">
+                <div class="col-sm-1 hidden-xs">
+                    <span ng-bind="$index + 1" title="#"></span>
+                </div>
+                <div class="col-sm-5">
+                    <span ng-bind="pkg.name" title="name"></span>
+                </div>
+                <div class="col-sm-4">
+                    <span ng-bind="pkg.owner?pkg.owner.name:''" title="owner"></span>
+                </div>
+                <div class="col-sm-2">
+                    <i class="glyphicon" title="Is proxy"
+                       ng-class="{'glyphicon-ok': pkg.is_proxy, 'glyphicon-remove': !pkg.is_proxy}">
+                    </i>
+                </div>
+            </div>
+            <div ng-if="pkg.info">
+                <div class="well row" ng-repeat="version in pkg.info.versions track by $index">
+                    <div class="col-sm-4">
+                        <span ng-bind="version"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

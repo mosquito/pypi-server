@@ -10,8 +10,8 @@ APP = angular.module("PYPI", [
 	$httpProvider.defaults.useXDomain = true;
 
 	$routeProvider
-		 .when('/', {templateUrl: '/static/partial/index.html', controller: 'indexCtrl'}
-		//).when('/login', {templateUrl: '/static/partial/login.html', controller: 'loginCtrl'}
+		 .when('/', {templateUrl: '/static/partial/packages.html', controller: 'packagesCtrl'}
+		).when('/admin', {templateUrl: '/static/partial/admin.html', controller: 'loginCtrl'}
 	).otherwise({redirectTo: '/'});
 
 }).run(function ($rootScope) {
