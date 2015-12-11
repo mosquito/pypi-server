@@ -6,7 +6,7 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.locks import Lock
 from tornado_xmlrpc.client import ServerProxy
-from pypi_server.cache import Cache
+from pypi_server.cache import Cache, HOUR
 from pypi_server.hash_version import HashVersion
 
 
@@ -37,7 +37,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(600)
+    @Cache(24 * HOUR)
     def packages(cls):
         with (yield cls.LOCK.acquire()):
             index = dict(
@@ -52,7 +52,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(600)
+    @Cache(HOUR)
     def search(cls, names, descriptions, operator="or"):
         assert operator in ('or', 'and')
         result = yield cls.XMLRPC.search({'name': names, 'description': descriptions}, operator)
@@ -66,7 +66,7 @@ class PYPIClient(object):
         except LookupError:
             raise Return(False)
 
-        releases = yield cls.get_releases(real_name)
+        releases = yield cls.releases(real_name)
         if not releases:
             raise Return(False)
 
@@ -87,38 +87,20 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(600)
-    def get_releases(cls, pkg_name):
-        raise Return((yield cls.XMLRPC.package_releases(pkg_name)))
-
-    @classmethod
-    @coroutine
-    @Cache(3600)
+    @Cache(HOUR)
     def releases(cls, name):
-        raise Return(set(map(HashVersion, (yield cls.XMLRPC.package_releases(name)))))
+        raise Return(set(map(HashVersion, (yield cls.XMLRPC.package_releases(name, True)))))
 
     @classmethod
     @coroutine
-    @Cache(3600)
+    @Cache(4 * HOUR)
     def release_data(cls, name, version):
         info = yield cls.XMLRPC.release_data(str(name), str(version))
         raise Return(info)
 
     @classmethod
     @coroutine
-    @Cache(3600)
+    @Cache(4 * HOUR)
     def release_files(cls, name, version):
         info = yield cls.XMLRPC.release_urls(str(name), str(version))
-
-        @coroutine
-        def fetcher(x):
-            raise Return((x, (yield cls.CLIENT.fetch(x['url']))))
-
-        info = yield list(map(fetcher, info))
-
-        ret = []
-        for item, response in info:
-            item['file'] = response
-            ret.append(item)
-
-        raise Return(sorted(ret, key=lambda x: x['filename']))
+        raise Return(sorted(info, key=lambda x: x['filename']))

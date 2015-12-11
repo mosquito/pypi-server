@@ -5,15 +5,18 @@ log = logging.getLogger("db.migrator")
 MIGRATIONS = []
 
 
-def migration(func):
-    global MIGRATIONS
+def migration(version):
+    def decorator(func):
+        global MIGRATIONS
 
-    MIGRATIONS.append((
-        "{0.__module__}.{0.__name__}".format(func),
-        func
-    ))
+        MIGRATIONS.append((
+            version,
+            "{0.__module__}.{0.__name__}".format(func),
+            func
+        ))
 
-    return func
+        return func
+    return decorator
 
 
 import pypi_server.db.migrator.migrations

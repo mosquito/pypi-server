@@ -3,19 +3,25 @@
 import hashlib
 import datetime
 import os
+import logging
 import peewee as p
 from multiprocessing import RLock
 from playhouse.kv import JSONField
+from playhouse import signals
 from pypi_server.timeit import timeit
 from pypi_server.hash_version import HashVersion
-from pypi_server.db import Model, DB
+from pypi_server.db import Model
 from pypi_server.db.users import Users
+from tornado.ioloop import IOLoop
 
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
+
+
+log = logging.getLogger("db.packages")
 
 
 class File(object):
@@ -122,23 +128,22 @@ class Package(Model):
 
     @timeit
     def create_version(self, name):
-        with DB.transaction():
-            q = PackageVersion.select(
-                PackageVersion.id
-            ).where(
-                PackageVersion.package == self,
-                PackageVersion.version == name
-            ).limit(1)
+        q = PackageVersion.select(
+            PackageVersion.id
+        ).where(
+            PackageVersion.package == self,
+            PackageVersion.version == name
+        ).limit(1)
 
-            if q.count():
-                return PackageVersion.get(id=q[0].id)
+        if q.count():
+            return PackageVersion.get(id=q[0].id)
 
-            version = PackageVersion(
-                package=self,
-                version=name if isinstance(name, HashVersion) else HashVersion(name),
-            )
+        version = PackageVersion(
+            package=self,
+            version=name if isinstance(name, HashVersion) else HashVersion(name),
+        )
 
-            version.save()
+        version.save()
 
         return version
 
@@ -235,6 +240,8 @@ class PackageFile(Model):
     CHUNK_SIZE = 2 ** 16
 
     file = FileField(index=True, max_length=255)
+    url = p.CharField(max_length=255, null=True, default=None)
+    fetched = p.BooleanField(default=False, index=True)
     basename = p.CharField(max_length=255, index=True)
     ts = p.DateTimeField(null=True)
     md5 = p.CharField(max_length=32, null=True)
@@ -281,3 +288,24 @@ class PackageFile(Model):
             f.add_close_callback(metadata_update)
 
         return f
+
+
+def remove_file(f):
+    log.info('Removing file "%s"', f.file)
+    os.remove(f.file)
+
+
+@signals.pre_delete(PackageFile)
+def on_delete_file(model_class, instance):
+    io_loop = IOLoop.current()
+    if model_class is PackageFile:
+        files = [instance]
+
+    elif model_class is PackageVersion:
+        files = PackageFile.select().join(PackageVersion).where(PackageFile.version == instance)
+
+    elif model_class is Package:
+        files = PackageFile.select().join(Package).where(PackageFile.package == instance)
+
+    for f in files:
+        io_loop.add_callback(remove_file, f)

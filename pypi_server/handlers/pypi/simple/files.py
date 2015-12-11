@@ -1,5 +1,7 @@
 # encoding: utf-8
 import os
+import logging
+
 from pypi_server.timeit import timeit
 from tornado.gen import coroutine, Return
 from tornado.web import HTTPError
@@ -7,6 +9,9 @@ from pypi_server.handlers import route, add_slash
 from pypi_server.handlers.base import BaseHandler, threaded
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from pypi_server.db.packages import PackageVersion, Package, PackageFile
+
+
+log = logging.getLogger(__name__)
 
 
 PACKAGE_META = {
@@ -34,52 +39,53 @@ PACKAGE_META = {
 }
 
 
+def chunks(lst, n):
+    for i in xrange(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 @coroutine
 def proxy_remote_package(package):
-    pkg = Package.get_or_create(name=package, proxy=True)
+    pkg = yield threaded(Package.get_or_create)(name=package, proxy=True)
 
-    releases, fetched_releases = yield [PYPIClient.releases(pkg.name), threaded(pkg.versions)()]
-    fetched_releases = set(map(lambda x: x.version, fetched_releases))
-    new_releases = releases - fetched_releases
-    versions = yield [release_fetch(pkg, release) for release in new_releases]
+    releases, cached_releases = yield [PYPIClient.releases(pkg.name), threaded(pkg.versions)()]
+    cached_releases = set(map(lambda x: x.version, cached_releases))
+    new_releases = list(releases - cached_releases)
 
-    writers = []
-
-    for version, files in versions:
-        for remote_file in files:
-            writers.append(
-                write_file(version, remote_file['filename'], remote_file['file'].body)
-            )
-
-    yield writers
+    for release_part in chunks(new_releases, 10):
+        yield [release_fetch(pkg, release) for release in release_part]
 
     raise Return(pkg)
 
 
 @threaded
-def write_file(version, filename, data):
-    pkg_file = version.create_file(filename)
-    with pkg_file.open('w+') as f:
-        f.write(data)
-
-    pkg_file.save()
-    return pkg_file
-
-
-@coroutine
-def release_fetch(package, rel):
+def release_db_save(package, rel, version_info, release_files):
     version = package.create_version(rel)
-    version_info, releases = yield [
-        PYPIClient.release_data(package.name, rel),
-        PYPIClient.release_files(package.name, rel)
-    ]
+    version.fetched = False
 
     for key, val in PACKAGE_META.items():
         setattr(version, key, version_info.get(val if val else key))
 
     version.save()
 
-    raise Return((version, releases))
+    for f in release_files:
+        pkg_file = version.create_file(f['filename'])
+        pkg_file.fetched = False
+        pkg_file.url = f['url']
+        pkg_file.md5 = f['md5_digest']
+        pkg_file.save()
+
+    return version
+
+
+@coroutine
+def release_fetch(package, rel):
+    version_info, release_files = yield [
+        PYPIClient.release_data(package.name, rel),
+        PYPIClient.release_files(package.name, rel)
+    ]
+
+    raise Return((yield release_db_save(package, rel, version_info, release_files)))
 
 
 @route(r'/simple/(?P<package>[\w\.\d\-\_]+)/?')
@@ -90,7 +96,7 @@ class VersionsHandler(BaseHandler):
     def get(self, package):
         exists, is_proxy, pkg = yield self.packages_list(package)
 
-        if not exists or is_proxy:
+        if not exists or (is_proxy or not pkg):
            pkg = yield self.proxy_package(package)
 
         if not pkg:

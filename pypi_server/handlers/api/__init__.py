@@ -65,3 +65,4 @@ import pypi_server.handlers.api.users
 import pypi_server.handlers.api.user
 import pypi_server.handlers.api.packages
 import pypi_server.handlers.api.package
+import pypi_server.handlers.api.version

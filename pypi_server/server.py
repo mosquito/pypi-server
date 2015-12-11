@@ -15,6 +15,7 @@ from tornado.web import Application
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import PeriodicCallback
 from pypi_server import ROOT
+from pypi_server.cache import HOUR
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from pypi_server.db import init_db
 from pypi_server.db.packages import PackageFile
@@ -134,7 +135,7 @@ def run():
             handlers.base.BaseHandler.THREAD_POOL
         )
 
-        pypi_updater = PeriodicCallback(PYPIClient.packages, 300000, io_loop)
+        pypi_updater = PeriodicCallback(PYPIClient.packages, 12 * HOUR * 1000, io_loop)
 
         io_loop.add_callback(PYPIClient.packages)
         io_loop.add_callback(pypi_updater.start)

@@ -6,17 +6,6 @@ import pypi_server
 from setuptools import setup, find_packages
 
 
-REQUIREMENTS = (
-    'tornado>=4.3',
-    'tornado-xmlrpc',
-    'slimurl',
-    'peewee',
-    'bcrypt',
-    'lxml',
-    'futures',
-)
-
-
 def walker(base, *paths):
     file_list = set([])
     cur_dir = os.path.abspath(os.curdir)
@@ -88,7 +77,15 @@ setup(
         ],
     },
     packages=find_packages(exclude=('tests',)),
-    install_requires=REQUIREMENTS,
+    install_requires=(
+        'tornado>=4.3',
+        'tornado-xmlrpc',
+        'slimurl',
+        'peewee',
+        'bcrypt',
+        'lxml',
+        'futures',
+    ),
     extras_require={
         'mysql': ['mysql-python'],
         'postgres': ['psycopg2'],

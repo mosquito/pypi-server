@@ -15,8 +15,12 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
     def get(self):
         self.render(
             os.path.join('simple', 'packages.html'),
-            packages=(yield threaded(Package.select)())
+            packages=(yield self.pkg_list())
         )
+
+    @threaded
+    def pkg_list(self):
+        return list(Package.select().order_by(Package.lower_name))
 
     @threaded
     def rpc_package_releases(self, package_name, show_hidden=False):

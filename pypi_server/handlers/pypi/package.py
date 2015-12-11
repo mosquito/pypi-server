@@ -9,6 +9,7 @@ from pypi_server.db import DB
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from tornado.gen import coroutine, Task, maybe_future, Return
 from tornado.web import asynchronous, HTTPError
+from tornado.httpclient import AsyncHTTPClient
 from pypi_server.handlers import route
 from pypi_server.handlers.base import BaseHandler, threaded
 from pypi_server.http_cache import HTTPCache
@@ -26,10 +27,24 @@ else:
 log = logging.getLogger(__name__)
 
 
+@threaded
+def write_file(pkg_file, data):
+    with pkg_file.open('w+') as f:
+        f.write(data)
+
+    pkg_file.fetched = True
+
+    assert hashlib.md5(data).hexdigest() == pkg_file.md5
+
+    pkg_file.save()
+    return pkg_file
+
+
 @route(r"/simple/(?P<package>\S+)/(?P<version>\S+)/(?P<filename>\S+)")
 @route(r"/package/(?P<package>\S+)/(?P<version>\S+)/(?P<filename>\S+)")
 class FileHandler(BaseHandler):
     CHUNK_SIZE = 2 ** 16
+    HTTP_CLIENT = AsyncHTTPClient()
 
     @asynchronous
     @HTTPCache(MONTH, use_expires=True, expire_timeout=MONTH)
@@ -37,7 +52,13 @@ class FileHandler(BaseHandler):
     def get(self, package, version, filename):
         try:
             package = yield PYPIClient.find_real_name(package)
+        except LookupError:
+            package = yield self.thread_pool.submit(Package.find, package)
+
+        try:
             pkg_file = yield self.find_file(package, version, filename)
+            if not pkg_file.fetched:
+                yield self.fetch_remote_file(pkg_file)
         except LookupError:
             self.send_error(404)
         else:
@@ -64,6 +85,9 @@ class FileHandler(BaseHandler):
     @threaded
     @Cache(HOUR, ignore_self=True)
     def find_file(self, package, version, filename):
+        if not isinstance(package, Package):
+            package = Package.find(package)
+
         pkg_file = PackageFile.select(
             PackageFile.id
         ).join(
@@ -71,15 +95,21 @@ class FileHandler(BaseHandler):
         ).join(
             PackageVersion
         ).where(
-            Package.name == package,
+            PackageFile.package == package,
+            PackageFile.basename == filename,
             PackageVersion.version == HashVersion(version),
-            PackageFile.basename == filename
         ).limit(1)
 
         if not pkg_file.count():
             raise LookupError("Not found")
 
         return PackageFile.get(id=pkg_file[0].id)
+
+    @classmethod
+    @coroutine
+    def fetch_remote_file(cls, pkg_file):
+        response = yield cls.HTTP_CLIENT.fetch(pkg_file.url)
+        yield write_file(pkg_file, response.body)
 
 
 @threaded
@@ -223,6 +253,8 @@ class XmlRPC(BaseHandler):
             version.save()
 
             pkg_file = version.create_file(uploaded_file.filename)
+            pkg_file.fetched = True
+            pkg_file.md5 = str(self.get_body_argument('md5_digest'))
 
             if pkg_file.exists():
                 raise HTTPError(409)

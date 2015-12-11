@@ -1,7 +1,7 @@
 # encoding: utf-8
 import logging
 import os
-import peewee
+from playhouse.signals import Model as SignalsModel
 from slimurl import URL
 from peewee import Proxy, SqliteDatabase, MySQLDatabase, PostgresqlDatabase
 from playhouse.migrate import SqliteMigrator, MySQLMigrator, PostgresqlMigrator
@@ -9,7 +9,7 @@ from playhouse.migrate import SqliteMigrator, MySQLMigrator, PostgresqlMigrator
 DB = Proxy()
 
 
-class Model(peewee.Model):
+class Model(SignalsModel):
     class Meta:
         database = DB
 
@@ -22,6 +22,7 @@ log = logging.getLogger('db')
 
 def init_sqlite(url):
     global DB
+
     dbfile = os.path.join("/", *url.path.split("/"))
     dirname = os.path.dirname(dbfile)
 
@@ -31,36 +32,42 @@ def init_sqlite(url):
         os.makedirs(dirname)
 
     DB.initialize(SqliteDatabase(dbfile))
+    log.info("Database initialized as '%s'. Checking migrations...", dbfile)
     return DB, SqliteMigrator(DB)
 
 
 def init_mysql(url):
     global DB
 
+    db_name = url.path.strip("/")
+
     DB.initialize(MySQLDatabase(
-        database=url.path.strip("/"),
+        database=db_name,
         user=url.user or '',
         password=url.password or '',
         host=url.host,
         autocommit=bool(url.get('autocommit', True)),
         autorollback=bool(url.get('autorollback', True))
     ))
-
+    log.info("Database initialized as '%s'. Checking migrations...", db_name)
     return DB, MySQLMigrator(DB)
 
 
 def init_postgres(url):
     global DB
+
+    db_name = url.path.strip("/")
+
     DB.initialize(PostgresqlDatabase(
-        database=url.path.strip("/"),
+        database=db_name,
         user=url.user or '',
         password=url.password or '',
         host=url.host,
         autocommit=bool(url.get('autocommit', True)),
         autorollback=bool(url.get('autorollback', True))
     ))
-
-    return DB, PostgresqlMigrator
+    log.info("Database initialized as '%s'. Checking migrations...", db_name)
+    return DB, PostgresqlMigrator(DB)
 
 
 DB_ENGINES = {
@@ -74,20 +81,11 @@ DB_ENGINES = {
 
 
 def init_db(db_url):
-    global DB
     db_url = URL(db_url)
     DB, migrator = DB_ENGINES.get(
         db_url.scheme,
         lambda x: log.fatal("Unable to fund database driver")
     )(db_url)
 
-    path = os.path.abspath(db_url.path)
-    db_dir = os.path.dirname(path)
-
-    if not os.path.exists(db_dir):
-        os.makedirs(db_dir)
-
     DB.create_tables([Migrations], safe=True)
-
-    log.info("Database initialized as '%s'. Checking migrations...", path)
     migrate_db(DB, Migrations, migrator)

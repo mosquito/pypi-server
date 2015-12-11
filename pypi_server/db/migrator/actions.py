@@ -3,21 +3,28 @@ from pypi_server.db.migrator import MIGRATIONS, log
 
 
 def migrate_db(DB, Migrations, migrator):
-    migration_history = dict(map(lambda x: (x.name, x.ts), Migrations.select()))
+    migrations = sorted(MIGRATIONS, key=lambda x: x[0])
 
-    for name, migration in MIGRATIONS:
-        if name not in migration_history:
-            try:
-                with DB.transaction():
-                    log.info('Applying migration: "%s"', name)
-                    migration(migrator, DB)
-            except Exception as e:
-                log.error("Migration failed.")
-                log.exception(e)
-                DB.rollback()
-                raise
-            else:
-                Migrations(name=name).save()
-                DB.commit()
-        else:
-            log.debug('Migration "%s" already applied on %s', name, migration_history[name])
+    q = Migrations.select(Migrations.id).order_by(Migrations.id.desc())
+
+    if q.count():
+        last_applied_migration = q[0].id
+    else:
+        last_applied_migration = -1
+
+    for migration_id, name, migration in filter(lambda x: x[0] > last_applied_migration, migrations):
+        try:
+            with DB.transaction():
+                log.info('Applying migration: "%s"', name)
+                migration(migrator, DB)
+                Migrations.create(
+                    id=migration_id,
+                    name=name
+                )
+        except Exception as e:
+            log.error("Migration failed.")
+            log.exception(e)
+            raise
+        finally:
+            DB.commit()
+

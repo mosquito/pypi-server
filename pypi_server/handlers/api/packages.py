@@ -7,6 +7,7 @@ from pypi_server.handlers.api import JSONHandler
 from pypi_server.handlers.base import threaded
 from pypi_server.handlers.api.login import authorization_required
 
+
 @route('/api/v1/packages/?')
 class PackagesHandler(JSONHandler):
     @authorization_required()
