@@ -2,9 +2,7 @@
 import uuid
 import errno
 import signal
-
 import pwd
-
 import os
 from slimurl import URL
 from tornado.ioloop import IOLoop
