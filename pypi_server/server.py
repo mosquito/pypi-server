@@ -2,6 +2,9 @@
 import uuid
 import errno
 import signal
+
+import pwd
+
 import os
 from slimurl import URL
 from tornado.ioloop import IOLoop
@@ -43,8 +46,17 @@ define("pool-size", help="Thread pool size (default cou_count * 2) [ENV:POOL_SIZ
 define("secret", help="Cookie secret (default random) [ENV:SECRET]",
        default=os.getenv("SECRET", uuid.uuid4().bytes))
 
-define("storage", help="Packages storage (default $CWD/packages) [ENV:STORAGE]", type=os.path.abspath,
-       default=os.getenv("STORAGE", os.path.join(os.path.abspath(os.path.curdir), 'packages')))
+define("user", help="Change UID of current process (not change by default)", default=None)
+
+define(
+    "storage", help="Packages storage (default $CWD/packages) [ENV:STORAGE]", type=str,
+    default=os.path.abspath(
+        os.getenv(
+            "STORAGE",
+            os.path.join(os.path.abspath(os.path.curdir), 'packages')
+        )
+    )
+)
 
 define(
     "database", help="Application database (default sqlite:///{storage}/metadata.db) [ENV:DB]",
@@ -73,6 +85,15 @@ def run():
 
     if options.config:
         options.parse_config_file(options.config)
+
+    options.storage = os.path.abspath(options.storage)
+
+    if os.getuid() == 0 and options.user:
+        pw = pwd.getpwnam(options.user)
+        uid, gid = pw.pw_uid, pw.pw_gid
+        log.info("Changind user to %s [%s:%s]", options.user, uid, gid)
+        os.setgid(uid)
+        os.setuid(uid)
 
     try:
         if not all(f(options.storage) for f in (os.path.exists, os.path.isdir)):

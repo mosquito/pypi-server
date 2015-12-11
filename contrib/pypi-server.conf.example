@@ -1,0 +1,9 @@
+from slimurl import URL
+
+address = '127.0.0.1'
+port = 8080
+proxy_mode = True
+storage = './packages'
+pool_size = 16
+secret = 'change me please'
+database = URL('sqlite:///tmp/test.db')

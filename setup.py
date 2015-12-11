@@ -38,7 +38,7 @@ data_files = ()
 if os.geteuid() == 0:
     data_files = (
         ("/etc/systemd/system", (os.path.join('contrib', 'pypi-server.service'),)),
-        ("/etc", (os.path.join('contrib', 'pypi-server.conf'),))
+        ("/etc", (os.path.join('contrib', 'pypi-server.conf.example'),))
     )
 
 
