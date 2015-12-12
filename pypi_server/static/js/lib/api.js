@@ -51,11 +51,26 @@ angular.module("PYPI").factory('API', function($http, $q, $rootScope, modals) {
 			list: function () {
 				return rest('/api/v1/packages');
 			},
-			info: function (name) {
-				return rest('/api/v1/package/' + name + '/');
+			info: function (packageName) {
+				return rest('/api/v1/package/' + packageName + '/');
 			},
-			versionInfo: function (name, version) {
-				return rest('/api/v1/package/' + name + '/' + version + '/');
+			changeOwner: function (packageName, owner) {
+				return rest('/api/v1/package/' + packageName + '/', 'put', {'owner': owner});
+			},
+			remove: function (packageName) {
+				return rest('/api/v1/package/' + packageName + '/', 'delete');
+			},
+			version: {
+				info: function (packageName, version) {
+					return rest('/api/v1/package/' + packageName + '/' + version + '/');
+				},
+				hide: function (packageName, version, hidden) {
+					hidden = hidden || false;
+					return rest('/api/v1/package/' + packageName + '/' + version + '/', 'put', {'hidden': hidden});
+				},
+				remove: function(packageName, version) {
+					return rest('/api/v1/package/' + packageName + '/' + version + '/', 'delete');
+				}
 			}
 		},
 		user: {

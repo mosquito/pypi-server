@@ -13,18 +13,19 @@ def migrate_db(DB, Migrations, migrator):
         last_applied_migration = -1
 
     for migration_id, name, migration in filter(lambda x: x[0] > last_applied_migration, migrations):
+        tran = DB.transaction()
+
         try:
-            with DB.transaction():
-                log.info('Applying migration: "%s"', name)
-                migration(migrator, DB)
-                Migrations.create(
-                    id=migration_id,
-                    name=name
-                )
+            log.info('Applying migration: "%s"', name)
+            migration(migrator, DB)
+            Migrations.create(
+                id=migration_id,
+                name=name
+            )
         except Exception as e:
             log.error("Migration failed.")
             log.exception(e)
+            tran.rollback()
             raise
-        finally:
-            DB.commit()
-
+        else:
+            tran.commit()

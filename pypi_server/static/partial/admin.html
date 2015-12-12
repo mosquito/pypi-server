@@ -1,0 +1,9 @@
+<div class="col-md-12" id="admin-page">
+    <button ng-click="createUser()">Create new user</button>
+    <div class="well row" ng-repeat="user in users track by $index">
+        <div class="col-md-12">
+            <span ng-bind="user.login"></span>
+            <span ng-bind="user.email"></span>
+        </div>
+    </div>
+</div>

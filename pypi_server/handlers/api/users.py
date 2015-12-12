@@ -12,7 +12,7 @@ LOGIN_EXP = re.compile("^[\d\w]+$")
 EMAIL_EXP = re.compile("^[^\@]+\@\S+$")
 
 
-@route('/api/v1/users')
+@route('/api/v1/users/?')
 class UsersHandler(JSONHandler):
     @authorization_required(is_admin=True)
     @threaded

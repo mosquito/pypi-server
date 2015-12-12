@@ -21,7 +21,7 @@ class PackageVersionHandler(JSONHandler):
     @coroutine
     def put(self, package, version):
         ver = yield self.get_version(package, version)
-        ver.hidden = self.json.get('hidden', version.hidden)
+        ver.hidden = self.json.get('hidden', ver.hidden)
 
         if ver.is_dirty:
             yield self.thread_pool.submit(ver.save)

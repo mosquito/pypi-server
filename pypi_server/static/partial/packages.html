@@ -24,6 +24,7 @@
                 </div>
                 <div class="col-sm-5">
                     <span ng-bind="pkg.name" title="name"></span>
+                    <button ng-click="pkg.remove()">Remove</button>
                 </div>
                 <div class="col-sm-4">
                     <span ng-bind="pkg.owner?pkg.owner.name:''" title="owner"></span>
@@ -37,7 +38,9 @@
             <div ng-if="pkg.info">
                 <div class="well row" ng-repeat="version in pkg.info.versions track by $index">
                     <div class="col-sm-4">
-                        <span ng-bind="version"></span>
+                        <span ng-bind="version.name"></span>
+                        <button ng-click="version.remove()">Remove</button>
+                        <button ng-click="version.hide()">Hide</button>
                     </div>
                 </div>
             </div>
