@@ -4,6 +4,7 @@ import logging
 
 from pypi_server.timeit import timeit
 from tornado.gen import coroutine, Return
+from tornado.ioloop import IOLoop
 from tornado.web import HTTPError
 from pypi_server.handlers import route, add_slash
 from pypi_server.handlers.base import BaseHandler, threaded
@@ -48,7 +49,9 @@ def chunks(lst, n):
 def proxy_remote_package(package):
     pkg = yield threaded(Package.get_or_create)(name=package, proxy=True)
 
-    releases, cached_releases = yield [PYPIClient.releases(pkg.name), threaded(pkg.versions)()]
+    releases, cached_releases = yield [PYPIClient.releases(pkg.name), threaded(pkg.versions)(True)]
+    IOLoop.current().add_callback(threaded(pkg.hide_versions), filter(lambda x: not x.hidden, releases))
+
     cached_releases = set(map(lambda x: x.version, cached_releases))
     new_releases = list(releases - cached_releases)
 
@@ -89,11 +92,12 @@ def release_fetch(package, rel):
 
 
 @route(r'/simple/(?P<package>[\w\.\d\-\_]+)/?')
+@route(r'/simple/(?P<package>[\w\.\d\-\_]+)/(?P<version>[\w\.\d\-\_]+)/?')
 @add_slash
 class VersionsHandler(BaseHandler):
     @timeit
     @coroutine
-    def get(self, package):
+    def get(self, package, version=None):
         exists, is_proxy, pkg = yield self.packages_list(package)
 
         if not exists or (is_proxy or not pkg):
@@ -102,7 +106,10 @@ class VersionsHandler(BaseHandler):
         if not pkg:
             raise HTTPError(404)
 
-        files = yield threaded(pkg.files)()
+        files = yield threaded(pkg.files)(version=version)
+
+        if not files:
+            raise HTTPError(404)
 
         self.render(
             os.path.join('simple', 'files.html'),

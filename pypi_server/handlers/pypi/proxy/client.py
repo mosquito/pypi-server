@@ -89,7 +89,28 @@ class PYPIClient(object):
     @coroutine
     @Cache(HOUR)
     def releases(cls, name):
-        raise Return(set(map(HashVersion, (yield cls.XMLRPC.package_releases(name, True)))))
+        process_versions = lambda x: set(map(HashVersion, x))
+
+        all_releases, current_releases = yield [
+            cls.XMLRPC.package_releases(name, True),
+            cls.XMLRPC.package_releases(name)
+        ]
+
+        all_releases = process_versions(all_releases)
+        current_releases = process_versions(current_releases)
+
+        hidden_releases = all_releases - current_releases
+
+        res = []
+        for x in current_releases:
+            x.hidden = False
+            res.append(x)
+
+        for x in hidden_releases:
+            x.hidden = True
+            res.append(x)
+
+        raise Return(set(res))
 
     @classmethod
     @coroutine

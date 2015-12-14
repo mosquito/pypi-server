@@ -2,12 +2,15 @@
 # encoding: utf-8
 import hashlib
 import datetime
+from functools import total_ordering
+
 import os
 import logging
 import peewee as p
 from multiprocessing import RLock
 from playhouse.kv import JSONField
 from playhouse import signals
+from pypi_server.cache import Cache, HOUR
 from pypi_server.timeit import timeit
 from pypi_server.hash_version import HashVersion
 from pypi_server.db import Model
@@ -82,39 +85,73 @@ class Package(Model):
     stable_version = VersionField(null=True)
     is_proxy = p.BooleanField(default=False, null=False)
 
+    def __str__(self):
+        return "%s" % self.name
+
     @timeit
-    def files(self):
+    def hide_versions(self, releases):
+        versions = dict(
+            map(
+                lambda x: (x.version, x),
+                list(PackageVersion.select().join(Package).where(PackageVersion.package == self))
+            )
+        )
+
+        for version in releases:
+            ver = versions.get(version, None)
+            if not ver:
+                continue
+
+            ver.hidden = getattr(version, 'hidden', False)
+
+            if ver.is_dirty():
+                log.debug("Set hidden flag for version %s of package %s as: %s", ver, self, ver.hidden)
+                ver.save()
+
+    @timeit
+    def files(self, version=None):
+        if version:
+            version = self.find_version(version)
+
+        q = PackageFile.select(
+            Package,
+            PackageVersion,
+            PackageFile
+        ).join(
+            PackageVersion
+        ).join(
+            Package
+        ).where(
+            Package.id == self.id
+        )
+
+        if version:
+            q = q.where(PackageFile.version == version)
+        else:
+            q = q.where(PackageVersion.hidden == False)
+
         return sorted(
-            PackageFile.select(
-                Package,
-                PackageVersion,
-                PackageFile
-            ).join(
-                PackageVersion
-            ).join(
-                Package
-            ).where(
-                Package.id == self.id,
-                PackageVersion.hidden == False,
-            ).order_by(
-                Package.name.asc(),
-            ),
+            q.order_by(Package.name.asc()),
             key=lambda x: x.version.version,
             reverse=True,
         )
 
     @timeit
     def versions(self, show_hidden=False):
+        q = PackageVersion.select(
+            Package,
+            PackageVersion
+        ).join(
+            Package
+        ).where(
+            PackageVersion.package == self
+        )
+
+        if not show_hidden:
+            q = q.where(PackageVersion.hidden == False)
+
         return sorted(
-            PackageVersion.select(
-                Package,
-                PackageVersion
-            ).join(
-                Package
-            ).where(
-                PackageVersion.package == self,
-                PackageVersion.hidden == show_hidden
-            ),
+            q,
             key=lambda x: x.version,
             reverse=True
         )
@@ -174,6 +211,7 @@ class Package(Model):
         raise LookupError('Package not found')
 
 
+@total_ordering
 class PackageVersion(Model):
     package = p.ForeignKeyField(Package, index=True, null=False)
     version = VersionField(index=True, null=False)
@@ -200,6 +238,24 @@ class PackageVersion(Model):
     obsoletes = JSONField(default=[])
     obsoletes_dist = JSONField(default=[])
     project_url = p.CharField(max_length=255, null=True)
+
+    def __hash__(self):
+        return hash((self.package_id, self.version))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __gt__(self, other):
+        assert isinstance(other, PackageVersion)
+
+        a = ()
+        a += (self.package_id,)
+        a += self.version.version
+        b = ()
+        b += (other.package_id,)
+        b += other.version.version
+
+        return a > b
 
     @timeit
     def files(self):
@@ -234,6 +290,9 @@ class PackageVersion(Model):
     def update_metadata(self, metadata):
         print (metadata)
 
+    def __str__(self):
+        return "%s" % self.version
+
 
 class PackageFile(Model):
     LOCK = RLock()
@@ -242,7 +301,7 @@ class PackageFile(Model):
     file = FileField(index=True, max_length=255)
     url = p.CharField(max_length=255, null=True, default=None)
     fetched = p.BooleanField(default=False, index=True)
-    basename = p.CharField(max_length=255, index=True)
+    basename = p.CharField(max_length=255, index=True, unique=True)
     ts = p.DateTimeField(null=True)
     md5 = p.CharField(max_length=32, null=True)
     size = p.IntegerField(null=True)
@@ -288,6 +347,9 @@ class PackageFile(Model):
             f.add_close_callback(metadata_update)
 
         return f
+
+    def __str__(self):
+        return "%s" % self.basename
 
 
 def remove_file(f):
