@@ -77,18 +77,21 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
         operator_func = ({'or': op_or, 'and': op_and}).get(operator.lower(), op_and)
         result = []
 
-        packages = PackageVersion.select().join(Package).where(
+        packages = PackageVersion.select(
+            Package.name,
+            PackageVersion,
+        ).join(Package).where(
             operator_func(
                 Package.name in tuple(names),
                 PackageVersion.description.contains(descriptions)
             )
         )
 
-        for pkg in packages:
+        for version in packages:
             pkg_dict = dict(
-                name=pkg.package.name,
-                version=str(pkg.version.name),
-                summary=pkg.version.description,
+                name=version.package.name,
+                version=str(version.version),
+                summary=version.description,
                 _pypi_ordering=1,
             )
 

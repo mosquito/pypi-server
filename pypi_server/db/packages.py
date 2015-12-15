@@ -222,7 +222,7 @@ class PackageVersion(Model):
     maintainer = p.CharField(max_length=255, null=True)
     maintainer_email = p.CharField(max_length=255, null=True)
     home_page = p.CharField(max_length=256, null=True)
-    license = p.CharField(max_length=128, null=True)
+    license = p.TextField(null=True)
     summary = p.CharField(max_length=255, null=True)
     description = p.TextField(null=True)
     keywords = JSONField(default=[])
