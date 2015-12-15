@@ -83,10 +83,9 @@ def release_db_save(package, rel, version_info, release_files):
 
 @coroutine
 def release_fetch(package, rel):
-    version_info, release_files = yield [
-        PYPIClient.release_data(package.name, rel),
-        PYPIClient.release_files(package.name, rel)
-    ]
+    version_info, release_files = yield PYPIClient.release_data(package.name, rel)
+
+    download_url = version_info.get('download_url')
 
     raise Return((yield release_db_save(package, rel, version_info, release_files)))
 

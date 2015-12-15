@@ -1,6 +1,9 @@
 # encoding: utf-8
+import hashlib
 import logging
 from copy import copy
+
+from slimurl import URL
 from tornado.gen import coroutine, Return
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop
@@ -116,12 +119,39 @@ class PYPIClient(object):
     @coroutine
     @Cache(4 * HOUR)
     def release_data(cls, name, version):
-        info = yield cls.XMLRPC.release_data(str(name), str(version))
-        raise Return(info)
+        info, files = yield [
+            cls.XMLRPC.release_data(str(name), str(version)),
+            cls.XMLRPC.release_urls(str(name), str(version))
+        ]
 
-    @classmethod
-    @coroutine
-    @Cache(4 * HOUR)
-    def release_files(cls, name, version):
-        info = yield cls.XMLRPC.release_urls(str(name), str(version))
-        raise Return(sorted(info, key=lambda x: x['filename']))
+        download_url = info.get('download_url')
+        if download_url and not files:
+            try:
+                url = URL(download_url)
+                filename = url.path.split('/')[-1]
+
+                if "#" in filename:
+                    filename = filename.split("#")[0]
+
+                response = yield cls.CLIENT.fetch(download_url)
+
+                files = [{
+                    'filename': filename,
+                    'md5_digest': hashlib.md5(response.body).hexdigest(),
+                    'downloads': -1,
+                    'url': download_url,
+                    'size': len(response.body),
+                    'comment_text': None,
+                }]
+            except Exception as e:
+                files = []
+                log.error("Error when trying to download version %s of package %s", version, name)
+                log.exception(e)
+
+        else:
+            files = sorted(
+                files,
+                key=lambda x: x['filename']
+            )
+
+        raise Return((info, files))

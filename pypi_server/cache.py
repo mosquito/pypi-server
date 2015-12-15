@@ -127,8 +127,14 @@ class Cache(object):
                 try:
                     f = next(gen)
                     while True:
-                        res = yield f
-                        f = gen.send(res)
+                        try:
+                            res = yield f
+                            f = gen.send(res)
+                        except (Return, StopIteration):
+                            raise
+                        except Exception as e:
+                            f = gen.throw(e)
+
                 except Return as e:
                     ret = Result(e.value)
                 except StopIteration as e:
