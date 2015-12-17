@@ -2,8 +2,9 @@
 import base64
 import hashlib
 import logging
-import cgi
-import io
+
+import peewee
+import re
 from functools import wraps
 from peewee import DoesNotExist
 from pypi_server import PY2
@@ -181,8 +182,8 @@ class XmlRPC(BaseHandler):
 
     @coroutine
     def prepare(self):
-        if self.request.method.upper() == 'POST' and not self.request.body.startswith('\r\n'):
-            boundary = list(
+        if self.request.method.upper() == 'POST' and not self.request.body.startswith("\r\n"):
+            boundary = dict(
                 filter(
                     lambda x: x[0] == 'boundary',
                     map(
@@ -190,12 +191,38 @@ class XmlRPC(BaseHandler):
                         self.request.headers.get('Content-Type', '').split(';')
                     )
                 )
-            )
+            ).get('boundary')
 
             if not boundary:
                 raise HTTPError(400)
 
-            self.request.body_arguments = cgi.parse_multipart(io.BytesIO(self.request.body), dict(boundary))
+            def normalize(chunk):
+                if '\n\n' not in chunk:
+                    return '\r\n' + chunk[1:]
+
+                ret = ''
+                ret += '\r\n'
+                data, content = chunk.split('\n\n', 1)
+                ret += data[1:]
+                ret += '\r\n\r\n'
+                ret += content[:-1]
+                ret += '\r\n'
+                return ret
+
+            boundary = "--{0}".format(boundary)
+
+            new_body = boundary.join(
+                map(
+                    normalize,
+                    self.request.body.split(boundary)
+                )
+            )
+
+            new_body = new_body[:-4]
+            new_body += '--\r\n'
+
+            self.request.body = new_body
+            self.request._parse_body()
 
         yield maybe_future(super(XmlRPC, self).prepare())
 
@@ -270,14 +297,17 @@ class XmlRPC(BaseHandler):
 
             version.save()
 
-            pkg_file = version.create_file(uploaded_file.filename)
-            pkg_file.fetched = True
-            pkg_file.md5 = str(self.get_body_argument('md5_digest'))
+            try:
+                pkg_file = version.create_file(uploaded_file.filename)
+                pkg_file.fetched = True
+                pkg_file.md5 = str(self.get_body_argument('md5_digest'))
 
-            if pkg_file.exists():
+                if pkg_file.exists():
+                    raise HTTPError(409)
+
+                with pkg_file.open("wb+") as f:
+                    f.write(uploaded_file.body)
+
+                pkg_file.save()
+            except peewee.DataError:
                 raise HTTPError(409)
-
-            with pkg_file.open("wb+") as f:
-                f.write(uploaded_file.body)
-
-            pkg_file.save()

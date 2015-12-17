@@ -10,7 +10,6 @@ import peewee as p
 from multiprocessing import RLock
 from playhouse.kv import JSONField
 from playhouse import signals
-from pypi_server.cache import Cache, HOUR
 from pypi_server.timeit import timeit
 from pypi_server.hash_version import HashVersion
 from pypi_server.db import Model
@@ -271,6 +270,9 @@ class PackageVersion(Model):
     @timeit
     def create_file(self, name):
         name = os.path.basename(name)
+        if PackageFile.select().where(PackageFile.basename == name).count():
+            raise p.DataError("Duplicate file")
+
         pkg_file = PackageFile(
             package=self.package,
             version=self,
