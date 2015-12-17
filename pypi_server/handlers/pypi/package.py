@@ -2,6 +2,8 @@
 import base64
 import hashlib
 import logging
+import cgi
+import io
 from functools import wraps
 from peewee import DoesNotExist
 from pypi_server import PY2
@@ -178,11 +180,27 @@ class XmlRPC(BaseHandler):
     }
 
     @coroutine
-    def post(self):
-        if '\r' not in self.request.body:
-            self.request.body = self.request.body.replace("\n", "\r\n")
-            self.request._parse_body()
+    def prepare(self):
+        if self.request.method.upper() == 'POST' and not self.request.body.startswith('\r\n'):
+            boundary = list(
+                filter(
+                    lambda x: x[0] == 'boundary',
+                    map(
+                        lambda x: x.strip().split("="),
+                        self.request.headers.get('Content-Type', '').split(';')
+                    )
+                )
+            )
 
+            if not boundary:
+                raise HTTPError(400)
+
+            self.request.body_arguments = cgi.parse_multipart(io.BytesIO(self.request.body), dict(boundary))
+
+        yield maybe_future(super(XmlRPC, self).prepare())
+
+    @coroutine
+    def post(self):
         try:
             action = self.get_body_argument(':action')
             self.request.body_arguments.pop(':action')
