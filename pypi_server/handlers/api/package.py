@@ -42,7 +42,7 @@ class PackageHandler(JSONHandler):
     @threaded
     def get_package(package):
         package = normalize_package_name(package)
-        q = Package.select().join(PackageVersion).where(Package.lower_name == package).limit(1)
+        q = Package.select().where(Package.lower_name == package).limit(1)
 
         if not q.count():
             raise HTTPError(404)

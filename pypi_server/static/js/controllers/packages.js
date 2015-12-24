@@ -3,7 +3,12 @@ angular.module("PYPI").controller("packagesCtrl", function ($rootScope, $scope, 
 
 	function updatePackages() {
 		API.package.list().then(function(data) {
-			$scope.packages = data.map(function (pkg) {
+			$scope.packages = data.map(function (pkg, $index) {
+				$scope.$watch('packages[' + $index + '].open', function(value) {
+					if (value) {
+						updatePackage(pkg);
+					}
+				});
 				pkg.remove = function () {
 					modals.confirm('You really want to delete package "' + pkg.name + '"?').then(function () {
 						API.package.remove(pkg.name).then(function () {
@@ -29,7 +34,7 @@ angular.module("PYPI").controller("packagesCtrl", function ($rootScope, $scope, 
 	onPageLoad();
 
 	function updatePackage (pkg) {
-		API.package.info(pkg.name).then(function (info) {
+		return API.package.info(pkg.name).then(function (info) {
 			pkg.info = info;
 			pkg.info.versions = pkg.info.versions.map(function (version) {
 				var ver = {
@@ -66,15 +71,5 @@ angular.module("PYPI").controller("packagesCtrl", function ($rootScope, $scope, 
 				return ver;
 			});
 		});
-
-		return pkg;
 	}
-
-	$scope.pkgInfo = function (pkg) {
-		if ('info' in pkg && pkg.info) {
-			pkg.info = false;
-		} else {
-			pkg.info = updatePackage(pkg);
-		}
-	};
 });

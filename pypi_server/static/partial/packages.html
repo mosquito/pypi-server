@@ -1,49 +1,41 @@
+
 <div class="col-md-12" id="index-page">
     <div>
-        <div class="well">
-            <div class="row">
-                <div class="col-sm-1 hidden-xs">
-                    <b>#</b>
-                </div>
-                <div class="col-sm-5">
-                    <b>Name</b>
-                </div>
-                <div class="col-sm-4">
-                    <b>Owner</b>
-                </div>
-                <div class="col-sm-2">
-                    <b>Is proxy</b>
-                </div>
-            </div>
-        </div>
+        <uib-accordion close-others="true">
+            <uib-accordion-group ng-repeat="pkg in packages track by $index" is-open="pkg.open">
+                <uib-accordion-heading >
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <span ng-bind="pkg.name" title="name"></span>
 
-        <div class="well" ng-repeat="pkg in packages track by $index">
-            <div class="row" ng-click="pkgInfo(pkg)">
-                <div class="col-sm-1 hidden-xs">
-                    <span ng-bind="$index + 1" title="#"></span>
-                </div>
-                <div class="col-sm-5">
-                    <span ng-bind="pkg.name" title="name"></span>
-                    <button ng-click="pkg.remove()">Remove</button>
-                </div>
-                <div class="col-sm-4">
-                    <span ng-bind="pkg.owner?pkg.owner.name:''" title="owner"></span>
-                </div>
-                <div class="col-sm-2">
-                    <i class="glyphicon" title="Is proxy"
-                       ng-class="{'glyphicon-ok': pkg.is_proxy, 'glyphicon-remove': !pkg.is_proxy}">
-                    </i>
-                </div>
-            </div>
-            <div ng-if="pkg.info">
-                <div class="well row" ng-repeat="version in pkg.info.versions track by $index">
-                    <div class="col-sm-4">
-                        <span ng-bind="version.name"></span>
-                        <button ng-click="version.remove()">Remove</button>
-                        <button ng-click="version.hide()">Hide</button>
+                            <div class="label label-info" ng-if="pkg.owner" ng-bind="pkg.owner.name"></div>
+                            <div class="label label-default" ng-if="pkg.is_proxy">proxy</div>
+
+                            <button class="btn btn-sm btn-danger pull-right" ng-click="pkg.remove()">Remove</button>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+
+                </uib-accordion-heading>
+
+                <div class="row">
+                    <div class="btn-group col-sm-3 col-md-3 col-lg-2" uib-dropdown ng-repeat="version in pkg.info.versions track by $index">
+                        <button id="split-button" type="button" class="btn btn-default" ng-bind="version.name"></button>
+                        <button type="button" class="btn btn-default" uib-dropdown-toggle>
+                            <span class="caret"></span>
+                            <span class="sr-only">Split button!</span>
+                        </button>
+                        <ul class="uib-dropdown-menu" role="menu" aria-labelledby="split-button">
+                            <li role="menuitem">
+                                <a href="#" ng-click="version.remove()">Remove</a>
+                            </li>
+                            <li role="menuitem">
+                                <a href="#" ng-click="version.hide()">Hide</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-        </div>
+            </uib-accordion-group>
+        </uib-accordion>
     </div>
 </div>

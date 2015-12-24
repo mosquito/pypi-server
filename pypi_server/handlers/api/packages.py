@@ -18,6 +18,9 @@ class PackagesHandler(JSONHandler):
             Users.login,
         ).join(
             Users, peewee.JOIN.LEFT_OUTER
+        ).order_by(
+            Package.is_proxy.asc(),
+            Package.lower_name.asc(),
         )
 
         self.response(
