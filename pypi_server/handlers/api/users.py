@@ -8,7 +8,7 @@ from pypi_server.handlers.api import JSONHandler
 from pypi_server.handlers.api.login import authorization_required
 
 
-LOGIN_EXP = re.compile("^[\d\w]+$")
+LOGIN_EXP = re.compile("^[\d\w\.\-\@\_]+$")
 EMAIL_EXP = re.compile("^[^\@]+\@\S+$")
 
 
