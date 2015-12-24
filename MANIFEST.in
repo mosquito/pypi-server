@@ -1,3 +1,4 @@
 recursive-include pypi_server/static *.js *.css *.png *.jp* *.html *.ttf *.woff* *.svg *.eot *.gif *.ico
+recursive-include pypi_server/templates *.html
 recursive-include contrib *.example *.conf *.service
 include README.rst
