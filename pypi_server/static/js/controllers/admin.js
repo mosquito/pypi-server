@@ -57,5 +57,20 @@ angular.module("PYPI").controller("adminCtrl", function ($scope, $uibModal, moda
 				modals.alert('User "' + userData.login + '" created.');
 			});
 		});
-	}
+	};
+
+	$scope.updateUser = function (user) {
+		API.user.modify(user.id, user).then(function (result) {
+			modals.alert('User "' + user.login + '" updated.');
+		})
+	};
+
+	$scope.deleteUser = function (user) {
+		modals.confirm('Are you really want to delete user "' + user.login + '"?').then(function () {
+			API.user.delete(user.id).then(function () {
+				modals.alert('User "' + user.login + '" disabled.');
+			});
+		});
+	};
+
 });

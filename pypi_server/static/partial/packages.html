@@ -1,8 +1,9 @@
 
 <div class="col-md-12" id="index-page">
+    <h3 align="center">List of packages</h3>
     <div>
         <uib-accordion close-others="true">
-            <uib-accordion-group ng-repeat="pkg in packages track by $index" is-open="pkg.open">
+            <uib-accordion-group ng-repeat="pkg in packages | filter:$root.search:'name'" is-open="pkg.open">
                 <uib-accordion-heading >
                     <div class="row">
                         <div class="col-sm-12">

@@ -1,9 +1,61 @@
 <div class="col-md-12" id="admin-page">
-    <button ng-click="createUser()">Create new user</button>
-    <div class="well row" ng-repeat="user in users track by $index">
+    <h3 align="center">Users management</h3>
+
+    <div class="row">
         <div class="col-md-12">
-            <span ng-bind="user.login"></span>
-            <span ng-bind="user.email"></span>
+            <button class="btn btn-success pull-right" ng-click="createUser()">Create new user</button>
         </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <uib-accordion class="col-md-12" close-others="true">
+            <uib-accordion-group ng-repeat="user in users | orderBy:'name' | orderBy:'disabled' | filter:$root.search:'login'">
+                <uib-accordion-heading>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <span ng-bind="user.login" title="login"></span>
+                            <span class="label label-danger" ng-if="user.disabled">disabled</span>
+                        </div>
+                    </div>
+                </uib-accordion-heading>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <form>
+                            <div class="form-group">
+                                <label for="{{ user.login }}Login">Login</label>
+                                <input class="form-control" id="{{ user.login }}Login" placeholder="Username" ng-model="user.login">
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ user.login }}Email">Email address</label>
+                                <input type="email" class="form-control" id="{{ user.login }}Email" placeholder="Email" ng-model="user.email">
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ user.login }}Password1">Password</label>
+                                <input type="password" class="form-control" id="{{ user.login }}Password1" placeholder="Password">
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ user.login }}Password2">Password confirm</label>
+                                <input type="password" class="form-control" id="{{ user.login }}Password2" placeholder="Password">
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" disabled ng-model="user.disabled"> Disabled
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="user.is_admin"> Admin privileges
+                                </label>
+                            </div>
+                            <button class="btn btn-success" ng-click="updateUser(user)">Submit</button>
+                            <button class="btn btn-danger" ng-click="deleteUser(user)">Delete user</button>
+                        </form>
+                    </div>
+                </div>
+            </uib-accordion-group>
+        </uib-accordion>
     </div>
 </div>
