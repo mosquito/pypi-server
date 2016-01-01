@@ -2,9 +2,7 @@
 import base64
 import hashlib
 import logging
-
 import peewee
-import re
 from functools import wraps
 from peewee import DoesNotExist
 from pypi_server import PY2
@@ -257,13 +255,14 @@ class XmlRPC(BaseHandler):
         if q.count():
             raise HTTPError(409)
 
-        q = Package.select().where(
-            Package.name == name,
-            Package.owner != self.current_user
-        )
+        if not self.current_user.is_admin:
+            q = Package.select().where(
+                Package.name == name,
+                Package.owner != self.current_user
+            )
 
-        if q.count():
-            raise HTTPError(403)
+            if q.count():
+                raise HTTPError(403)
 
         pkg = Package(name=name, lower_name=name.lower(), owner=self.current_user)
         pkg.save()
