@@ -2,9 +2,8 @@ PYPI Server
 ===========
 Fast asynchronous pypi server implementation.
 
-
-Features
---------
+Screenshots
+-----------
 
 .. image:: screenshots/packages.png?raw=true
    :scale: 50 %
@@ -14,6 +13,10 @@ Features
 
 .. image:: screenshots/create_user.png?raw=true
    :scale: 50 %
+
+
+Features
+--------
 
 Supports right now:
 
