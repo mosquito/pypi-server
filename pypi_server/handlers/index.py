@@ -13,7 +13,6 @@ from pypi_server import ROOT
 class IndexHander(BaseHandler):
     @HTTPCache(600, True, 60)
     @coroutine
-    @Cache(60, ignore_self=True)
     def get(self):
         vendor_js, vendor_css, application, styles = yield [
             self.find(ROOT, 'static/vendor', '.js'),
@@ -32,7 +31,7 @@ class IndexHander(BaseHandler):
 
     @staticmethod
     @threaded
-    @Cache(60)
+    @Cache(5)
     def find(base_dir, path, pattern):
         file_list = []
 

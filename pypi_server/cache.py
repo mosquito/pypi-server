@@ -236,12 +236,11 @@ class Cache(object):
             if os.path.exists(fname):
                 os.remove(fname)
 
-        self.CACHE.pop(args_key)
+        self.CACHE.pop(args_key, -1)
         log.debug("EXPIRED Cache [%s] %r", key, args_key)
 
 
 signal.signal(signal.SIGUSR1, Cache.invalidate_all)
-signal.signal(signal.SIGUSR2, Cache.invalidate_all)
 
 
 MINUTE = 60

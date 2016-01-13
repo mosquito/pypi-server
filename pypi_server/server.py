@@ -115,6 +115,12 @@ def run():
         for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT):
             signal.signal(sig, on_interrupt)
 
+        def handle_pdb(sig, frame):
+            import pdb
+            pdb.Pdb().set_trace(frame)
+
+        signal.signal(signal.SIGUSR2, handle_pdb)
+
         log.debug("Creating application instance")
         app = Application(
             base_dir=ROOT,

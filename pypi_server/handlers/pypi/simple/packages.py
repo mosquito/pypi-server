@@ -21,7 +21,7 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
 
     @classmethod
     @threaded
-    @Cache(5)
+    @Cache(5, files_cache=True, ignore_self=True)
     def pkg_list(cls):
         return list(Package.select().order_by(Package.lower_name))
 
@@ -59,6 +59,7 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
         return list(map(lambda x: x.name, Package.select()))
 
     @coroutine
+    @Cache(60, files_cache=True)
     def rpc_search(self, query, operator='or'):
         results = []
 
