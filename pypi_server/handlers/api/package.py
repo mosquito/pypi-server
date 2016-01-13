@@ -1,4 +1,5 @@
 # encoding: utf-8
+from pypi_server.cache import Cache
 from pypi_server.db.packages import Package, PackageVersion
 from pypi_server.handlers import route
 from pypi_server.handlers.api import JSONHandler
@@ -40,6 +41,7 @@ class PackageHandler(JSONHandler):
 
     @staticmethod
     @threaded
+    @Cache(5)
     def get_package(package):
         q = Package.select().where(
             Package.lower_name == package.lower() or Package.lower_name == normalize_package_name(package)

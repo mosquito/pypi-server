@@ -15,7 +15,7 @@ SESSION_SECS = SESSION_DAYS * 86400
 
 
 @threaded
-@Cache(60)
+@Cache(10)
 def find_user(uid, is_admin=False):
     cond = (
         Users.disabled == False,

@@ -10,6 +10,7 @@ import peewee as p
 from multiprocessing import RLock
 from playhouse.kv import JSONField
 from playhouse import signals
+from pypi_server.cache import Cache
 from pypi_server.timeit import timeit
 from pypi_server.hash_version import HashVersion
 from pypi_server.db import Model
@@ -185,6 +186,7 @@ class Package(Model):
 
     @classmethod
     @timeit
+    @Cache(5)
     def get_or_create(cls, name, proxy=False):
         if not Package.select().where(Package.name == name).count():
             pkg = Package(name=name, lower_name=name.lower(), is_proxy=proxy, owner=None)
@@ -195,6 +197,7 @@ class Package(Model):
 
     @classmethod
     @timeit
+    @Cache(5)
     def find(cls, name):
         q = Package.select().join(
             PackageVersion

@@ -135,7 +135,7 @@ def run():
             handlers.base.BaseHandler.THREAD_POOL
         )
 
-        pypi_updater = PeriodicCallback(PYPIClient.packages, 12 * HOUR * 1000, io_loop)
+        pypi_updater = PeriodicCallback(PYPIClient.packages, HOUR * 1000, io_loop)
 
         io_loop.add_callback(PYPIClient.packages)
         io_loop.add_callback(pypi_updater.start)

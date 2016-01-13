@@ -1,5 +1,6 @@
 # encoding: utf-8
 import os
+from pypi_server.cache import Cache
 from tornado.gen import coroutine, Return
 from tornado_xmlrpc.handler import XMLRPCHandler
 from pypi_server.handlers import route, add_slash
@@ -18,17 +19,23 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
             packages=(yield self.pkg_list())
         )
 
+    @classmethod
     @threaded
-    def pkg_list(self):
+    @Cache(5)
+    def pkg_list(cls):
         return list(Package.select().order_by(Package.lower_name))
 
+    @classmethod
     @threaded
-    def rpc_package_releases(self, package_name, show_hidden=False):
+    @Cache(5)
+    def rpc_package_releases(cls, package_name, show_hidden=False):
         package = Package.select().where(Package.name == package_name)
         return list(map(lambda x: str(x.name), package.versions()))
 
+    @classmethod
     @threaded
-    def rpc_release_urls(self, package_name, version):
+    @Cache(5)
+    def rpc_release_urls(cls, package_name, version):
         raise Return(
             list(
                 map(
@@ -45,8 +52,10 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
             )
         )
 
+    @classmethod
     @threaded
-    def rpc_list_packages(self):
+    @Cache(5)
+    def rpc_list_packages(cls):
         return list(map(lambda x: x.name, Package.select()))
 
     @coroutine
@@ -69,7 +78,9 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
 
         raise Return(results)
 
+    @classmethod
     @threaded
+    @Cache(5)
     def _search(self, names, descriptions, operator):
         op_and = lambda x, y: x & y
         op_or = lambda x, y: x | y

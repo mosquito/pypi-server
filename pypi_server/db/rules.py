@@ -5,7 +5,6 @@ from pypi_server.db.users import Users
 from playhouse.fields import ManyToManyField
 
 
-
 class Groups(Model):
     name = p.CharField(max_length=255, unique=True, index=True, null=False)
     disabled = p.BooleanField(default=False, null=False)
