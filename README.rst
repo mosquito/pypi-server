@@ -6,6 +6,15 @@ Fast asynchronous pypi server implementation.
 Features
 --------
 
+.. image:: screenshots/packages.png?raw=true
+   :scale: 50 %
+
+.. image:: screenshots/users.png?raw=true
+   :scale: 50 %
+
+.. image:: screenshots/create_user.png?raw=true
+   :scale: 50 %
+
 Supports right now:
 
 * Caching packages from global-pypi
