@@ -113,7 +113,20 @@ class Package(Model):
         if version:
             version = self.find_version(version)
 
-        q = PackageFile.select(
+        if version:
+            versions = PackageVersion.select().where(
+                PackageFile.version == version,
+                PackageVersion.package == self
+            )
+        else:
+            versions = PackageVersion.select().where(
+                PackageVersion.hidden == False,
+                PackageVersion.package == self
+            )
+
+        packages = Package.select().where(Package.id == self.id)
+
+        files = PackageFile.select(
             Package,
             PackageVersion,
             PackageFile
@@ -123,15 +136,10 @@ class Package(Model):
             Package
         ).where(
             Package.id == self.id
-        )
-
-        if version:
-            q = q.where(PackageFile.version == version)
-        else:
-            q = q.where(PackageVersion.hidden == False)
+        ).order_by(Package.name.asc())
 
         return sorted(
-            q.order_by(Package.name.asc()),
+            p.prefetch(files, packages, versions),
             key=lambda x: x.version.version,
             reverse=True,
         )
@@ -151,7 +159,10 @@ class Package(Model):
             q = q.where(PackageVersion.hidden == False)
 
         return sorted(
-            q,
+            p.prefetch(
+                q,
+                Package.select().where(Package.id == self.id),
+            ),
             key=lambda x: x.version,
             reverse=True
         )

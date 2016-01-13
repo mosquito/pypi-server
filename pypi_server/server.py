@@ -1,4 +1,5 @@
 # encoding: utf-8
+import tempfile
 import uuid
 import errno
 import signal
@@ -15,7 +16,7 @@ from tornado.web import Application
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import PeriodicCallback
 from pypi_server import ROOT
-from pypi_server.cache import HOUR
+from pypi_server.cache import HOUR, Cache
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from pypi_server.db import init_db
 from pypi_server.db.packages import PackageFile
@@ -78,6 +79,13 @@ define("pypi_server",
        help="PYPI service url. Using for proxy. (default https://pypi.python.org/) [ENV:PYPY_SERVER]",
        default=URL(os.getenv("PYPI_SERVER", 'https://pypi.python.org/')), type=URL)
 
+default_cache_dir = os.path.join(tempfile.gettempdir(), 'pypi-server-cache')
+define(
+    "cache_dir",
+    help='Directory for storing cache files (default: "{}")'.format(default_cache_dir),
+    default=default_cache_dir
+)
+
 
 def run():
     options.parse_command_line()
@@ -124,6 +132,11 @@ def run():
         io_loop = IOLoop.current()
 
         io_loop.run_sync(lambda: init_db(options.database))
+
+        if not (os.path.exists(options.cache_dir) and os.path.isdir(options.cache_dir)):
+            os.makedirs(options.cache_dir)
+
+        Cache.CACHE_DIR = options.cache_dir
 
         log.info("Init thread pool with %d threads", options.pool_size)
         handlers.base.BaseHandler.THREAD_POOL = futures.ThreadPoolExecutor(options.pool_size)

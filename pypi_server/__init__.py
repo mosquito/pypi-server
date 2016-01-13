@@ -9,7 +9,7 @@ author_info = [
     ("Dmitry Orlov", "me@mosquito.su")
 ]
 
-version_info = (0, 3, 2)
+version_info = (0, 3, 3)
 
 __version__ = ".".join(map(str, version_info))
 __author__ = ", ".join("{0} <{1}>".format(*author) for author in author_info)

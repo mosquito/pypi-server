@@ -40,7 +40,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(HOUR)
+    @Cache(HOUR, files_cache=True, ignore_self=True)
     def packages(cls):
         with (yield cls.LOCK.acquire()):
             index = dict(
@@ -55,7 +55,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(60)
+    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
     def search(cls, names, descriptions, operator="or"):
         assert operator in ('or', 'and')
         result = yield cls.XMLRPC.search({'name': names, 'description': descriptions}, operator)
@@ -90,7 +90,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(60)
+    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
     def releases(cls, name):
         process_versions = lambda x: set(map(HashVersion, x))
 
@@ -117,7 +117,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(60)
+    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
     def release_data(cls, name, version):
         info, files = yield [
             cls.XMLRPC.release_data(str(name), str(version)),

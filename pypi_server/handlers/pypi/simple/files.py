@@ -2,7 +2,7 @@
 import os
 import logging
 
-from pypi_server.cache import Cache
+from pypi_server.cache import Cache, HOUR
 from pypi_server.timeit import timeit
 from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop
@@ -48,6 +48,7 @@ def chunks(lst, n):
 
 @coroutine
 @timeit
+@Cache(3600, files_cache=True)
 def proxy_remote_package(package):
     pkg = yield threaded(Package.get_or_create)(name=package, proxy=True)
 
@@ -88,9 +89,6 @@ def release_db_save(package, rel, version_info, release_files):
 @coroutine
 def release_fetch(package, rel):
     version_info, release_files = yield PYPIClient.release_data(package.name, rel)
-
-    download_url = version_info.get('download_url')
-
     raise Return((yield release_db_save(package, rel, version_info, release_files)))
 
 
@@ -123,7 +121,6 @@ class VersionsHandler(BaseHandler):
     @classmethod
     @threaded
     @timeit
-    @Cache(5)
     def packages_list(cls, package):
         q = Package.select().join(
             PackageVersion
@@ -141,7 +138,6 @@ class VersionsHandler(BaseHandler):
     @classmethod
     @timeit
     @coroutine
-    @Cache(5)
     def proxy_package(cls, package):
         if (yield PYPIClient.exists(package)):
             pkg_real_name = yield PYPIClient.find_real_name(package)
