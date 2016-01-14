@@ -5,6 +5,10 @@ from functools import total_ordering
 
 @total_ordering
 class HashVersion(LooseVersion):
+    def __init__(self, vstring=None):
+        super(HashVersion, self).__init__(vstring=vstring)
+        self.version = tuple(map(str, self.version))
+
     def __hash__(self):
         return hash(self.__str__())
 
