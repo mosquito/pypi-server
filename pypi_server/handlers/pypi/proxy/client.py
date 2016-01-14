@@ -2,14 +2,13 @@
 import hashlib
 import logging
 from copy import copy
-
 from slimurl import URL
 from tornado.gen import coroutine, Return
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.locks import Lock
 from tornado_xmlrpc.client import ServerProxy
-from pypi_server.cache import Cache, HOUR
+from pypi_server.cache import Cache, HOUR, MONTH
 from pypi_server.hash_version import HashVersion
 
 
@@ -55,7 +54,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
+    @Cache(4 * HOUR, files_cache=True, ignore_self=True)
     def search(cls, names, descriptions, operator="or"):
         assert operator in ('or', 'and')
         result = yield cls.XMLRPC.search({'name': names, 'description': descriptions}, operator)
@@ -90,7 +89,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
+    @Cache(4 * HOUR, files_cache=True, ignore_self=True)
     def releases(cls, name):
         process_versions = lambda x: set(map(HashVersion, x))
 
@@ -117,7 +116,7 @@ class PYPIClient(object):
 
     @classmethod
     @coroutine
-    @Cache(12 * HOUR, files_cache=True, ignore_self=True)
+    @Cache(MONTH, files_cache=True, ignore_self=True)
     def release_data(cls, name, version):
         info, files = yield [
             cls.XMLRPC.release_data(str(name), str(version)),
