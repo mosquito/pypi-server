@@ -85,6 +85,7 @@ setup(
         'bcrypt',
         'lxml',
         'futures',
+        'six',
     ),
     extras_require={
         'mysql': ['mysql-python'],

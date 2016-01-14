@@ -8,6 +8,7 @@ from peewee import DoesNotExist
 from pypi_server import PY2
 from pypi_server.db import DB
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
+from six import b
 from tornado.gen import coroutine, Task, maybe_future, Return
 from tornado.web import asynchronous, HTTPError
 from tornado.httpclient import AsyncHTTPClient
@@ -136,7 +137,7 @@ def authorization_required(func):
         if auth_type.lower() != 'basic':
             raise Return(self.send_error(400))
 
-        username, password = map(unquote_plus, base64.b64decode(data).split(":"))
+        username, password = map(lambda x: unquote_plus(x.decode("utf-8")), base64.b64decode(b(data)).split(b(":")))
         try:
             self.current_user = yield check_password(username, password)
         except LookupError:
@@ -179,7 +180,7 @@ class XmlRPC(BaseHandler):
 
     @coroutine
     def prepare(self):
-        if self.request.method.upper() == 'POST' and not self.request.body.startswith("\r\n"):
+        if self.request.method.upper() == 'POST' and not self.request.body.startswith(b("\r\n")):
             boundary = dict(
                 filter(
                     lambda x: x[0] == 'boundary',
@@ -194,19 +195,19 @@ class XmlRPC(BaseHandler):
                 raise HTTPError(400)
 
             def normalize(chunk):
-                if '\n\n' not in chunk:
-                    return '\r\n' + chunk[1:]
+                if b('\n\n') not in chunk:
+                    return b('\r\n') + chunk[1:]
 
-                ret = ''
-                ret += '\r\n'
-                data, content = chunk.split('\n\n', 1)
+                ret = b('')
+                ret += b('\r\n')
+                data, content = chunk.split(b('\n\n'), 1)
                 ret += data[1:]
-                ret += '\r\n\r\n'
+                ret += b('\r\n\r\n')
                 ret += content[:-1]
-                ret += '\r\n'
+                ret += b('\r\n')
                 return ret
 
-            boundary = "--{0}".format(boundary)
+            boundary = b("--{0}".format(boundary))
 
             new_body = boundary.join(
                 map(
@@ -216,7 +217,7 @@ class XmlRPC(BaseHandler):
             )
 
             new_body = new_body[:-4]
-            new_body += '--\r\n'
+            new_body += b('--\r\n')
 
             self.request.body = new_body
             self.request._parse_body()
