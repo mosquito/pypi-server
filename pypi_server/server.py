@@ -119,7 +119,8 @@ def run():
             import pdb
             pdb.Pdb().set_trace(frame)
 
-        signal.signal(signal.SIGUSR2, handle_pdb)
+        if options.debug:
+            signal.signal(signal.SIGUSR2, handle_pdb)
 
         log.debug("Creating application instance")
         app = Application(

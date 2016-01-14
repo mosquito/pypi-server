@@ -16,6 +16,12 @@ from pypi_server.db.packages import PackageVersion, Package, PackageFile
 log = logging.getLogger(__name__)
 
 
+try:
+    xrange
+except NameError:
+    xrange = range
+
+
 PACKAGE_META = {
     'author': None,
     'author_email': None,
