@@ -5,7 +5,7 @@
 {% block "body" %}
     <h1>Files for {{ package }}</h1>
     {% for file in files %}
-    <a href="/simple/{{ file.package.name }}/{{ file.version.version }}/{{ file.basename }}#md5={{ file.md5 }}" rel="internal" class="file">{{ file.basename }}</a>
+    <a href="/simple/{{ package }}/{{ file.version.version }}/{{ file.basename }}#md5={{ file.md5 }}" rel="internal" class="file">{{ file.basename }}</a>
     {% end %}
 
 {% end %}
