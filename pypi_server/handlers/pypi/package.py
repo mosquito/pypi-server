@@ -84,7 +84,6 @@ class FileHandler(BaseHandler):
             self.finish()
 
     @threaded
-    @Cache(60, ignore_self=True, files_cache=True)
     def find_file(self, package, version, filename):
         if not isinstance(package, Package):
             package = Package.find(package)
