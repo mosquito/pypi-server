@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 
 @threaded
 def write_file(pkg_file, data):
-    with pkg_file.open('w+') as f:
+    with pkg_file.open('wb+') as f:
         f.write(data)
 
     pkg_file.fetched = True
