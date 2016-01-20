@@ -2,6 +2,13 @@ PYPI Server
 ===========
 Fast asynchronous pypi server implementation.
 
+What is this?
+-------------
+
+pypi.python.org - is a global package repository of the python packages. This package is a self-hosted pypi service with caching functionallity from the global pypi.
+
+HTTP proxy can't works with XML-RPC of pypi.python.org.
+
 Screenshots
 -----------
 
