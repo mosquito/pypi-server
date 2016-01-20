@@ -23,7 +23,23 @@ class JSONHandler(BaseHandler):
             if 'application/json' not in content_type:
                 raise HTTPError(400)
 
-            self._json = yield self.thread_pool.submit(self._from_json, self.request.body)
+            charset = dict(
+                map(
+                    lambda x: list(
+                        map(
+                            lambda y: y.strip('"\''),
+                            x.split("=", 1))),
+                    filter(
+                        lambda x: "=" in x,
+                        map(
+                            lambda x: x.strip(),
+                            content_type.split(";")
+                        )
+                    )
+                )
+            ).get('charset', 'utf-8')
+
+            self._json = yield self.thread_pool.submit(self._from_json, self.request.body.decode(charset))
         else:
             self._json = None
 
