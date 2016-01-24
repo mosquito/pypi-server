@@ -41,7 +41,7 @@ setup(
     description="Tornado PyPi server",
     long_description=open('README.rst').read(),
     platforms="all",
-    classifiers=(
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',
@@ -63,8 +63,7 @@ setup(
         'Topic :: Software Development :: Version Control',
         'Topic :: System',
         'Topic :: System :: Software Distribution',
-    ),
-
+    ],
     include_package_data=True,
     zip_safe=False,
     package_data={
