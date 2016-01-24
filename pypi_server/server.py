@@ -98,7 +98,7 @@ def create_app(debug=False, secret="", gzip=False, **kwargs):
         gzip=gzip,
         handlers=handlers.ROUTES,
         options=options,
-        **kwargs,
+        **kwargs
     )
 
 
