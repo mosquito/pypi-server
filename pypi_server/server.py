@@ -87,6 +87,21 @@ define(
 )
 
 
+def create_app(debug=False, secret="", gzip=False, **kwargs):
+    return Application(
+        base_dir=ROOT,
+        debug=debug,
+        reload=debug,
+        cookie_secret=secret,
+        template_path=os.path.join(ROOT, 'templates'),
+        default_handler_class=handlers.DefaultHandler,
+        gzip=gzip,
+        handlers=handlers.ROUTES,
+        options=options,
+        **kwargs,
+    )
+
+
 def run():
     options.parse_command_line()
 
@@ -123,16 +138,10 @@ def run():
             signal.signal(signal.SIGUSR2, handle_pdb)
 
         log.debug("Creating application instance")
-        app = Application(
-            base_dir=ROOT,
-            debug=options.debug,
-            reload=options.debug,
-            cookie_secret=options.secret,
-            template_path=os.path.join(ROOT, 'templates'),
-            default_handler_class=handlers.DefaultHandler,
-            gzip=options.gzip,
-            handlers=handlers.ROUTES,
-            options=options
+        app = create_app(
+            options.debug,
+            options.secret,
+            options.gzip,
         )
 
         log.debug("Creating IOLoop instance.")

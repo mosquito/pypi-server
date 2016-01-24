@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import peewee as p
-from playhouse.fields import PasswordField
+from playhouse.fields import PasswordField as PasswordFieldBase, PasswordHash
 from pypi_server.db import Model
+
+
+class PasswordField(PasswordFieldBase):
+    def db_value(self, value):
+        if isinstance(value, PasswordHash):
+            value = value.decode("utf-8")
+        return super(PasswordField, self).db_value(value)
 
 
 class Users(Model):

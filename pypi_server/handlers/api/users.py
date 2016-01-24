@@ -50,7 +50,7 @@ class UsersHandler(JSONHandler):
             assert password and len(password) > 3
             assert LOGIN_EXP.match(login)
             assert EMAIL_EXP.match(email)
-        except (KeyError, AssertionError):
+        except (KeyError, AssertionError, TypeError):
             raise HTTPError(400)
 
         if Users.select().where(Users.login == login).count():

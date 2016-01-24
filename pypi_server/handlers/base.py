@@ -1,7 +1,8 @@
 # encoding: utf-8
+import logging
 from functools import wraps
-from tornado.web import RequestHandler
-
+from tornado.gen import Return
+from tornado.web import RequestHandler, HTTPError
 
 try:
     import cPickle as pickle
@@ -14,6 +15,9 @@ except ImportError:
     import json
 
 
+log = logging.getLogger(__name__)
+
+
 class BaseHandler(RequestHandler):
     _NULL = object()
     THREAD_POOL = None
@@ -23,11 +27,29 @@ class BaseHandler(RequestHandler):
     def thread_pool(self):
         return self.THREAD_POOL
 
+    @staticmethod
+    def _log_result(function):
+        def logger(result):
+            exc = result.exception()
+            if exc:
+                if not isinstance(exc, (Return, HTTPError)):
+                    log.exception(exc)
+            else:
+                log.debug(
+                    "Result of function %s is: %r",
+                    function.__name__,
+                    result.result()
+                )
+
+        return logger
+
     @classmethod
     def threaded(cls, func):
         @wraps(func)
         def wrap(*args, **kwargs):
-            return cls.THREAD_POOL.submit(func, *args, **kwargs)
+            f = cls.THREAD_POOL.submit(func, *args, **kwargs)
+            f.add_done_callback(cls._log_result(func))
+            return f
 
         return wrap
 

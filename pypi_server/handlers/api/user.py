@@ -38,27 +38,34 @@ class UserHandler(JSONHandler):
     def put(self, uid):
         try:
             user = Users.get(id=uid)
+        except DoesNotExist:
+            raise HTTPError(404)
+
+        try:
             user.login = self.json.get("login", user.login)
             user.email = self.json.get("email", user.email)
             user.is_admin = bool(self.json.get("is_admin", user.is_admin))
             user.password = self.json.get("password", user.password)
 
-            assert user.password and len(user.password) > 3
-            assert LOGIN_EXP.match(user.login)
-            assert EMAIL_EXP.match(user.email)
-        except (KeyError, AssertionError):
+            if not all((
+                isinstance(user.login, str),
+                isinstance(user.email, str),
+                LOGIN_EXP.match(str(user.login)) is not None,
+                user.password and len(user.password) > 3,
+                EMAIL_EXP.match(str(user.email)) is not None,
+            )):
+                raise HTTPError(400)
+        except:
             raise HTTPError(400)
-        except DoesNotExist:
-            raise HTTPError(404)
-        else:
-            user.save()
 
-            self.response({
-                'id': user.id,
-                'login': user.login,
-                'email': user.email,
-                'is_admin': user.is_admin,
-            })
+        user.save()
+
+        self.response({
+            'id': user.id,
+            'login': user.login,
+            'email': user.email,
+            'is_admin': user.is_admin,
+        })
 
     @authorization_required(is_admin=True)
     @threaded
@@ -72,3 +79,5 @@ class UserHandler(JSONHandler):
             raise HTTPError(404)
         else:
             user.save()
+
+        self.set_status(204)
