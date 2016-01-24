@@ -4,6 +4,19 @@ PYPI Server
 .. image:: https://travis-ci.org/mosquito/pypi-server.svg?branch=master
     :target: https://travis-ci.org/mosquito/pypi-server
 
+.. image:: https://img.shields.io/pypi/v/pypi-server.svg
+    :target: https://pypi.python.org/pypi/pypi-server/
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/wheel/pypi-server.svg
+    :target: https://pypi.python.org/pypi/pypi-server/
+
+.. image:: https://img.shields.io/pypi/pyversions/pypi-server.svg
+    :target: https://pypi.python.org/pypi/pypi-server/
+
+.. image:: https://img.shields.io/pypi/l/pypi-server.svg
+    :target: https://pypi.python.org/pypi/pypi-server/
+
 Fast asynchronous pypi server implementation.
 
 What is this?
