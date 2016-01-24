@@ -1,5 +1,9 @@
 PYPI Server
 ===========
+
+.. image:: https://travis-ci.org/mosquito/pypi-server.svg?branch=master
+    :target: https://travis-ci.org/mosquito/pypi-server
+
 Fast asynchronous pypi server implementation.
 
 What is this?
