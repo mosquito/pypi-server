@@ -62,7 +62,7 @@ class TestAPILogin(TestCase):
         for i in range(1, len(cases)):
             for case in itertools.combinations(cases, i):
                 body = dict(case)
-
+                log.info("Send body: %r", body)
                 response = yield client.fetch(
                     self.get_url("/api/v1/user/{0}".format(user['id'])),
                     "PUT", body

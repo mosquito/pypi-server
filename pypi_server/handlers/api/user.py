@@ -1,4 +1,5 @@
 # encoding: utf-8
+from six import text_type
 from peewee import DoesNotExist
 from tornado.web import HTTPError
 from pypi_server.db.users import Users
@@ -48,8 +49,8 @@ class UserHandler(JSONHandler):
             user.password = self.json.get("password", user.password)
 
             if not all((
-                isinstance(user.login, str),
-                isinstance(user.email, str),
+                isinstance(user.login, text_type),
+                isinstance(user.email, text_type),
                 LOGIN_EXP.match(str(user.login)) is not None,
                 user.password and len(user.password) > 3,
                 EMAIL_EXP.match(str(user.email)) is not None,
