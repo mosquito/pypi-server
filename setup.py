@@ -81,7 +81,7 @@ setup(
         'tornado-xmlrpc',
         'slimurl',
         'peewee',
-        'bcrypt',
+        'bcrypt>=2.0',
         'lxml',
         'futures',
         'six',

@@ -1,18 +1,60 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import peewee as p
-from playhouse.fields import PasswordField as PasswordFieldBase, PasswordHash, gensalt, hashpw
+from six import binary_type, text_type
+from playhouse.fields import gensalt, hashpw
 from pypi_server.db import Model
+from tornado.log import app_log as log
 
 
-class PasswordField(PasswordFieldBase):
+def b(value):
+    if isinstance(value, text_type):
+        return value.encode('utf-8')
+
+    if isinstance(value, binary_type):
+        return value
+
+    raise TypeError("Can't convert %r to binary explicit." % type(value))
+
+
+def u(value):
+    if isinstance(value, binary_type):
+        return value.decode('utf-8')
+
+    elif isinstance(value, text_type):
+        return value
+
+    raise TypeError("Can't convert %r to unicode explicit." % type(value))
+
+
+class PasswordHash(text_type):
+    __slots__ = ()
+
+    def check_password(self, password):
+        password = b(password)
+        pw_hash = b(self)
+
+        log.debug("Password: %r %r", self, password)
+        return hashpw(password, pw_hash) == pw_hash
+
+
+class PasswordField(p.TextField):
+    __slots__ = ('bcrypt_iterations', )
+
+    def __init__(self, iterations=12, *args, **kwargs):
+        self.bcrypt_iterations = int(iterations)
+        super(PasswordField, self).__init__(*args, **kwargs)
+
     def db_value(self, value):
-        if isinstance(value, p.unicode_type):
-            value = value.encode('utf-8')
+        return value if value is None else u(
+            hashpw(
+                b(value),
+                gensalt(self.bcrypt_iterations)
+            )
+        )
 
-        salt = gensalt(self.bcrypt_iterations)
-        return value if value is None else hashpw(value, salt)
-
+    def python_value(self, value):
+        return PasswordHash(u(value))
 
 
 class Users(Model):

@@ -7,6 +7,7 @@ from pypi_server.timeit import timeit
 from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop
 from tornado.web import HTTPError
+from tornado.httpclient import HTTPError as HTTPClientError
 from pypi_server.handlers import route, add_slash
 from pypi_server.handlers.base import BaseHandler, threaded
 from pypi_server.handlers.pypi.proxy.client import PYPIClient
@@ -145,10 +146,17 @@ class VersionsHandler(BaseHandler):
     @timeit
     @coroutine
     def proxy_package(cls, package):
-        if (yield PYPIClient.exists(package)):
-            pkg_real_name = yield PYPIClient.find_real_name(package)
-            pkg = yield proxy_remote_package(pkg_real_name)
+        try:
+            remote_package_exists = yield PYPIClient.exists(package)
 
-            raise Return(pkg)
+            if remote_package_exists:
+                pkg_real_name = yield PYPIClient.find_real_name(package)
+                pkg = yield proxy_remote_package(pkg_real_name)
 
-        raise LookupError("Remote package not found")
+                raise Return(pkg)
+
+            raise LookupError("Remote package not found")
+        except (LookupError, HTTPClientError) as e:
+            if isinstance(e, HTTPClientError):
+                log.warning("PYPI backend return an error: %s", e)
+            raise Return(Package.find(package))

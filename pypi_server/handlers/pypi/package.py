@@ -11,7 +11,7 @@ from pypi_server.handlers.pypi.proxy.client import PYPIClient
 from six import b
 from tornado.gen import coroutine, Task, maybe_future, Return
 from tornado.web import asynchronous, HTTPError
-from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import AsyncHTTPClient, HTTPError as HTTPClientError
 from pypi_server.handlers import route
 from pypi_server.handlers.base import BaseHandler, threaded
 from pypi_server.http_cache import HTTPCache
@@ -54,7 +54,10 @@ class FileHandler(BaseHandler):
     def get(self, package, version, filename):
         try:
             package = yield PYPIClient.find_real_name(package)
-        except LookupError:
+        except (LookupError, HTTPClientError) as e:
+            if isinstance(e, HTTPClientError):
+                log.warning("PYPI backend return an error: %s", e)
+
             package = yield self.thread_pool.submit(Package.find, package)
 
         try:
