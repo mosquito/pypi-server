@@ -34,8 +34,10 @@ class PasswordHash(text_type):
         password = b(password)
         pw_hash = b(self)
 
-        log.debug("Password: %r %r", self, password)
-        return hashpw(password, pw_hash) == pw_hash
+        hashed = b(hashpw(password, pw_hash))
+
+        log.debug("Password hashed=%r self=%r", hashed, self)
+        return hashed == pw_hash
 
 
 class PasswordField(p.TextField):
