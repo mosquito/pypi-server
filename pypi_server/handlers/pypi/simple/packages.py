@@ -1,6 +1,6 @@
 # encoding: utf-8
 import os
-from pypi_server.cache import Cache
+from pypi_server.cache import Cache, DAY
 from tornado.gen import coroutine, Return
 from tornado_xmlrpc.handler import XMLRPCHandler
 from pypi_server.handlers import route, add_slash
@@ -59,7 +59,6 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
         return list(map(lambda x: x.name, Package.select()))
 
     @coroutine
-    @Cache(60, files_cache=True)
     def rpc_search(self, query, operator='or'):
         results = []
 
@@ -81,8 +80,8 @@ class PackagesHandler(BaseHandler, XMLRPCHandler):
 
     @classmethod
     @threaded
-    @Cache(5)
-    def _search(self, names, descriptions, operator):
+    @Cache(DAY, files_cache=True)
+    def _search(cls, names, descriptions, operator):
         op_and = lambda x, y: x & y
         op_or = lambda x, y: x | y
 
