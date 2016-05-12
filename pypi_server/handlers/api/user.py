@@ -46,7 +46,10 @@ class UserHandler(JSONHandler):
             user.login = self.json.get("login", user.login)
             user.email = self.json.get("email", user.email)
             user.is_admin = bool(self.json.get("is_admin", user.is_admin))
-            user.password = self.json.get("password", user.password)
+
+            password = self.json.get("password")
+            if password:
+                user.password = password
 
             if not all((
                 isinstance(user.login, text_type),

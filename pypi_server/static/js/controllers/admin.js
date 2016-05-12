@@ -60,6 +60,7 @@ angular.module("PYPI").controller("adminCtrl", function ($scope, $uibModal, moda
 	};
 
 	$scope.updateUser = function (user) {
+		
 		API.user.modify(user.id, user).then(function (result) {
 			modals.alert('User "' + user.login + '" updated.');
 		})
