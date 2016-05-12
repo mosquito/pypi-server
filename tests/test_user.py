@@ -110,7 +110,6 @@ class TestAPILogin(TestCase):
             ("email", {1: 2}),
             ("password", "123"),
             ("password", "1"),
-            ("password", False),
             ("password", [1, '2']),
             ("password", {1: '2'}),
         ]
