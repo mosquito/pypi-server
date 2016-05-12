@@ -56,12 +56,21 @@ class TestAPILogin(TestCase):
             ("login", "foofoofoo"),
             ("email", "aaa@bbb.com"),
             ("is_admin", False),
+            ("disabled", False),
             ("password", str(uuid.uuid4()))
         ]
 
         for i in range(1, len(cases)):
             for case in itertools.combinations(cases, i):
                 body = dict(case)
+
+                if 'disabled' in body:
+                    log.info("Deleting user: %r", user['id'])
+                    yield client.fetch(
+                        self.get_url("/api/v1/user/{0}".format(user['id'])),
+                        "DELETE"
+                    )
+
                 log.info("Send body: %r", body)
                 response = yield client.fetch(
                     self.get_url("/api/v1/user/{0}".format(user['id'])),

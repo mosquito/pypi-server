@@ -51,6 +51,10 @@ class UserHandler(JSONHandler):
             if password:
                 user.password = password
 
+            disabled = self.json.get("disabled")
+            if disabled is False:
+                user.disabled = False
+
             if not all((
                 isinstance(user.login, text_type),
                 isinstance(user.email, text_type),
@@ -68,6 +72,7 @@ class UserHandler(JSONHandler):
             'id': user.id,
             'login': user.login,
             'email': user.email,
+            'disabled': user.disabled,
             'is_admin': user.is_admin,
         })
 
