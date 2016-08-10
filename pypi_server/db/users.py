@@ -3,7 +3,7 @@
 import peewee as p
 from six import binary_type, text_type
 from playhouse.fields import gensalt, hashpw
-from pypi_server.db import Model
+from pypi_server.db import BaseModel
 from tornado.log import app_log as log
 
 
@@ -59,7 +59,7 @@ class PasswordField(p.TextField):
         return PasswordHash(u(value))
 
 
-class Users(Model):
+class Users(BaseModel):
     login = p.CharField(max_length=255, unique=True, index=True, null=False)
     password = PasswordField(iterations=10, null=False)
     disabled = p.BooleanField(default=False, null=False)

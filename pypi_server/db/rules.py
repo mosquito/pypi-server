@@ -1,11 +1,11 @@
 # encoding: utf-8
 import peewee as p
-from pypi_server.db import Model
+from pypi_server.db import BaseModel
 from pypi_server.db.users import Users
 from playhouse.fields import ManyToManyField
 
 
-class Groups(Model):
+class Groups(BaseModel):
     name = p.CharField(max_length=255, unique=True, index=True, null=False)
     disabled = p.BooleanField(default=False, null=False)
 
@@ -25,7 +25,7 @@ class Groups(Model):
             raise p.DoesNotExist("User doesn't exists")
 
 
-class Participant(Model):
+class Participant(BaseModel):
     user = p.ForeignKeyField(Users, unique=False, index=True)
     group = p.ForeignKeyField(Groups, unique=False, index=True)
     rules = ManyToManyField()

@@ -9,7 +9,7 @@ from playhouse.migrate import SqliteMigrator, MySQLMigrator, PostgresqlMigrator
 DB = Proxy()
 
 
-class Model(SignalsModel):
+class BaseModel(SignalsModel):
     class Meta:
         database = DB
 
