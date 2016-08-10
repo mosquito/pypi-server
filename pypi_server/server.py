@@ -48,14 +48,15 @@ define("secret", help="Cookie secret (default random) [ENV:SECRET]",
 
 define("user", help="Change UID of current process (not change by default)", default=None)
 
-define(
-    "storage", help="Packages storage (default $CWD/packages) [ENV:STORAGE]", type=str,
-    default=os.path.abspath(
+default_storage=os.path.abspath(
         os.getenv(
             "STORAGE",
             os.path.join(os.path.abspath(os.path.curdir), 'packages')
         )
     )
+define(
+    "storage", help="Packages storage (default $CWD/packages) [ENV:STORAGE]", type=str,
+    default=default_storage
 )
 
 define(
@@ -65,7 +66,7 @@ define(
         "DB",
         URL(
             "sqlite://{0}".format("/".join(
-                os.path.split(os.path.join(os.path.abspath(os.path.curdir), 'packages', 'metadata.db'))
+                os.path.split(os.path.join(default_storage, 'metadata.db'))
             ))
         )
     )
