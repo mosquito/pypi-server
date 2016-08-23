@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 def normalize_package_name(name):
-    return name.lower().replace("_", "-")
+    return name.lower().replace("_", "-").replace(".", "-")
 
 
 class PYPIClient(object):
@@ -44,7 +44,7 @@ class PYPIClient(object):
         with (yield cls.LOCK.acquire()):
             index = dict(
                 map(
-                    lambda x: (x.lower().replace("_", "-"), x),
+                    lambda x: (normalize_package_name(x), x),
                     (yield cls.XMLRPC.list_packages())
                 )
             )
@@ -77,10 +77,10 @@ class PYPIClient(object):
     @classmethod
     @coroutine
     def find_real_name(cls, name):
-        name = normalize_package_name(name)
+        name = normalize_package_name(name).lower()
 
         packages = yield cls.packages()
-        real_name = packages.get(name.lower())
+        real_name = packages.get(name)
 
         if real_name is None:
             raise LookupError("Package not found")
@@ -91,7 +91,7 @@ class PYPIClient(object):
     @coroutine
     @Cache(4 * HOUR, files_cache=True, ignore_self=True)
     def releases(cls, name):
-        process_versions = lambda x: set(map(HashVersion, x))
+        process_versions = lambda x: set(HashVersion(i) for i in x)
 
         all_releases, current_releases = yield [
             cls.XMLRPC.package_releases(name, True),
