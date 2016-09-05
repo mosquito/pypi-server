@@ -30,7 +30,7 @@ class PackagesHandler(JSONHandler):
                         name=x.name,
                         owner={
                             'id': x.owner_id,
-                            'name': x.owner.login
+                            'name': x.owner.login if x.owner else None
                         },
                         is_proxy=x.is_proxy,
                     ),
