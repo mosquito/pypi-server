@@ -89,5 +89,6 @@ setup(
     extras_require={
         'mysql': ['mysql-python'],
         'postgres': ['psycopg2'],
+        'proxy': ['pycurl'],
     }
 )
