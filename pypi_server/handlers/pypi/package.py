@@ -46,7 +46,6 @@ def write_file(pkg_file, data):
 @route(r"/package/(?P<package>\S+)/(?P<version>\S+)/(?P<filename>\S+)")
 class FileHandler(BaseHandler):
     CHUNK_SIZE = 2 ** 16
-    HTTP_CLIENT = AsyncHTTPClient()
 
     @asynchronous
     @HTTPCache(MONTH, use_expires=True, expire_timeout=MONTH)
@@ -112,7 +111,7 @@ class FileHandler(BaseHandler):
     @classmethod
     @coroutine
     def fetch_remote_file(cls, pkg_file):
-        response = yield cls.HTTP_CLIENT.fetch(pkg_file.url)
+        response = yield AsyncHTTPClient().fetch(pkg_file.url)
         yield write_file(pkg_file, response.body)
 
 
