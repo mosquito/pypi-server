@@ -163,6 +163,19 @@ def run():
 
         AsyncHTTPClient.configure(None, max_clients=options.max_http_clients)
 
+        proxy_url = URL(os.getenv('{0}_proxy'.format(options.pypi_server.scheme)))
+        if proxy_url:
+            log.debug("Configuring for proxy: %s", proxy_url)
+            AsyncHTTPClient.configure(
+                    'tornado.curl_httpclient.CurlAsyncHTTPClient',
+                    defaults={
+                        'proxy_host': proxy_url.host,
+                        'proxy_port': proxy_url.port,
+                        'proxy_username': proxy_url.user,
+                        'proxy_password': proxy_url.password,
+                        }
+                    )
+
         PYPIClient.configure(
             options.pypi_server,
             handlers.base.BaseHandler.THREAD_POOL
