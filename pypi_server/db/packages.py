@@ -13,7 +13,7 @@ from playhouse import signals
 from pypi_server.cache import Cache
 from pypi_server.timeit import timeit
 from pypi_server.hash_version import HashVersion
-from pypi_server.db import Model
+from pypi_server.db import BaseModel
 from pypi_server.db.users import Users
 from tornado.ioloop import IOLoop
 
@@ -78,7 +78,7 @@ class FileField(p.CharField):
         )
 
 
-class Package(Model):
+class Package(BaseModel):
     name = p.CharField(index=True)
     lower_name = p.CharField(index=True, unique=True)
     owner = p.ForeignKeyField(Users, null=True, index=True)
@@ -214,7 +214,7 @@ class Package(Model):
 
 
 @total_ordering
-class PackageVersion(Model):
+class PackageVersion(BaseModel):
     package = p.ForeignKeyField(Package, index=True, null=False)
     version = VersionField(index=True, null=False)
     hidden = p.BooleanField(default=False, null=False, index=True)
@@ -299,7 +299,7 @@ class PackageVersion(Model):
         return "%s" % self.version
 
 
-class PackageFile(Model):
+class PackageFile(BaseModel):
     LOCK = RLock()
     CHUNK_SIZE = 2 ** 16
 
