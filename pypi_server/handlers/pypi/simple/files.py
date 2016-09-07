@@ -83,7 +83,12 @@ def release_db_save(package, rel, version_info, release_files):
     version.save()
 
     for f in release_files:
-        pkg_file = version.create_file(f['filename'])
+        try:
+            pkg_file = version.create_file(f['filename'])
+        except Exception as e:
+            log.error("Error when trying to download file %s for version %s of package %s", f['filename'], version, package)
+            log.exception(e)
+            continue
         pkg_file.fetched = False
         pkg_file.url = f['url']
         pkg_file.md5 = f['md5_digest']
