@@ -35,7 +35,7 @@ define("debug", help="Use for attach a debugger",
        default=bool(os.getenv("DEBUG")), type=bool)
 
 define("gzip", help="Compress responses (default False) [ENV:GZIP]",
-       default=bool(os.getenv("GZIP", '0')), type=bool)
+       default=bool(os.getenv("GZIP")), type=bool)
 
 define("proxy-mode", help="Process X-headers on requests (default True) [ENV:PROXY_MODE]",
        default=bool(os.getenv('PROXY_MODE', '1')), type=bool)
