@@ -109,7 +109,10 @@ class VersionsHandler(BaseHandler):
         exists, is_proxy, pkg = yield self.packages_list(package)
 
         if not exists or (is_proxy or not pkg):
-           pkg = yield self.proxy_package(package)
+            try:
+                pkg = yield self.proxy_package(package)
+            except LookupError:
+                pkg = None
 
         if not pkg:
             raise HTTPError(404)
@@ -159,4 +162,5 @@ class VersionsHandler(BaseHandler):
         except (LookupError, HTTPClientError) as e:
             if isinstance(e, HTTPClientError):
                 log.warning("PYPI backend return an error: %s", e)
+
             raise Return(Package.find(package))
