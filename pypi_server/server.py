@@ -86,6 +86,9 @@ define(
     default=default_cache_dir
 )
 
+define('pypi_proxy', help='Enable proxying to PyPI (default True) [ENV:PYPI_PROXY]',
+        type=bool, default=bool(os.getenv('PYPI_PROXY', '1')))
+
 
 def create_app(debug=False, secret="", gzip=False, **kwargs):
     return Application(
@@ -164,10 +167,11 @@ def run():
             handlers.base.BaseHandler.THREAD_POOL
         )
 
-        pypi_updater = PeriodicCallback(PYPIClient.packages, HOUR * 1000, io_loop)
+        if options.pypi_proxy:
+            pypi_updater = PeriodicCallback(PYPIClient.packages, HOUR * 1000, io_loop)
 
-        io_loop.add_callback(PYPIClient.packages)
-        io_loop.add_callback(pypi_updater.start)
+            io_loop.add_callback(PYPIClient.packages)
+            io_loop.add_callback(pypi_updater.start)
 
         log.info("Starting server http://%s:%d/", options.address, options.port)
         http_server = HTTPServer(app, xheaders=options.proxy_mode)
