@@ -47,7 +47,7 @@ class TestAPILogin(TestCase):
         for key in ("disabled", "email", "id", "is_admin", "login", "packages"):
             self.assertIn(key, response.body)
 
-    @gen_test
+    @gen_test(timeout=10)
     def test_put_user(self):
         client = yield self.auth_client()
         user = yield self.create_user(client)
