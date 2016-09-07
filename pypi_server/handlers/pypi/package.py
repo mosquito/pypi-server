@@ -282,6 +282,10 @@ class XmlRPC(BaseHandler):
                 raise HTTPError(404)
 
             package = Package.get(lower_name=package_name)
+
+            if package.owner != self.current_user and not self.current_user.is_admin:
+                raise HTTPError(403)
+
             version = package.create_version(self.get_body_argument('version'))
 
             uploaded_file = self.request.files['content'][0]
