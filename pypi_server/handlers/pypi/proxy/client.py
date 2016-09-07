@@ -7,6 +7,7 @@ from tornado.gen import coroutine, Return
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.locks import Lock
+from tornado.options import options
 from tornado_xmlrpc.client import ServerProxy
 from pypi_server.cache import Cache, HOUR, MONTH
 from pypi_server.hash_version import HashVersion
@@ -77,6 +78,9 @@ class PYPIClient(object):
     @classmethod
     @coroutine
     def find_real_name(cls, name):
+        if not options.pypi_proxy:
+            raise LookupError("Proxying to PyPI disabled")
+
         name = normalize_package_name(name).lower()
 
         packages = yield cls.packages()
