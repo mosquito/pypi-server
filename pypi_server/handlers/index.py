@@ -40,4 +40,4 @@ class IndexHander(BaseHandler):
                 rel_file = "/".join(os.path.split(os.path.join(root, f))).replace("/".join(os.path.split(base_dir)), '/')
                 file_list.append("/{}".format(rel_file.strip("/")))
 
-        return file_list
+        return sorted(file_list)
