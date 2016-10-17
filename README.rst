@@ -101,11 +101,12 @@ Default admin login \ password is: admin \ admin
 How upload own package
 ----------------------
 
-1. Make sure what your package setup.py file is correct. Check reference at.
-.. _Reference: https://packaging.python.org/distributing/
+1. Make sure what your package setup.py file is correct. Check reference at https://packaging.python.org/distributing/
 
 2. Create at home directory .pypirc
+
 .. code-block::
+
     [distutils]
     index-servers =
         mypypi
@@ -115,7 +116,9 @@ How upload own package
     username=admin
     password=admin
 
-3. Make bundle, register package at your pypi server and upload package:
+3. Make bundle, register package at your pypi-server and upload package:
+
 .. code-block:: bash
+
     cd your_package_root_folder
     python setup.py sdist register upload -r mypypi
