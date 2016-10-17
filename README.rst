@@ -101,10 +101,11 @@ Default admin login \ password is: admin \ admin
 How upload own package
 ----------------------
 
-1. Make sure what your package setup.py file is correct. Check Reference_.
+1. Make sure what your package setup.py file is correct. Check reference at.
 .. _Reference: https://packaging.python.org/distributing/
+
 2. Create at home directory .pypirc
-.. code-block:: ini
+.. code-block::
     [distutils]
     index-servers =
         mypypi
