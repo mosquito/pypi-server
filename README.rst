@@ -96,3 +96,24 @@ If you want to support postgres or mysql database:
 
     pip install 'pypi-server[postgres]' # or 'pypi-server[mysql]'
 
+Default admin login \ password is: admin \ admin
+
+How upload own package
+----------------------
+
+1. Make sure what your package setup.py file is correct.
+2. Create at home directory .pypirc
+.. code-block:: ini
+    [distutils]
+    index-servers =
+        mypypi
+
+    [mypypi]
+    repository=http://example.com/pypi
+    username=admin
+    password=admin
+
+2. Make bundle, register package at your pypi server and upload package:
+.. code-block:: bash
+    cd your_package_root_folder
+    python setup.py sdist register upload -r mypypi
