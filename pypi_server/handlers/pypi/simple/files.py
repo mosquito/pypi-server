@@ -2,7 +2,7 @@
 import os
 import logging
 
-from pypi_server.cache import Cache, HOUR
+from pypi_server.cache import Cache
 from pypi_server.timeit import timeit
 from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop
@@ -100,8 +100,11 @@ def release_db_save(package, rel, version_info, release_files):
 @timeit
 @coroutine
 def release_fetch(package, rel):
-    version_info, release_files = yield PYPIClient.release_data(package.name, rel)
-    raise Return((yield release_db_save(package, rel, version_info, release_files)))
+    try:
+        version_info, release_files = yield PYPIClient.release_data(package.name, rel)
+        raise Return((yield release_db_save(package, rel, version_info, release_files)))
+    except:
+        log.exception("Error proccess %r %r", package, rel)
 
 
 @route(r'/simple/(?P<package>[\w\.\d\-\_]+)/?')
