@@ -1,6 +1,5 @@
 # encoding: utf-8
 import hashlib
-import json
 import logging
 from copy import copy
 from slimurl import URL
@@ -17,26 +16,6 @@ from pypi_server.hash_version import HashVersion
 log = logging.getLogger(__name__)
 
 
-def async_retrying(number, exceptions=(Exception,)):
-    def decorator(func):
-        @coroutine
-        def wrap(*args, **kwargs):
-            last_exc = None
-            for i in range(number):
-                try:
-                    raise Return((yield func(*args, **kwargs)))
-                except Return:
-                    raise
-                except exceptions as e:
-                    log.exception("Error on attempt: %r", i)
-                    last_exc = e
-
-            if last_exc:
-                raise last_exc
-        return wrap
-    return decorator
-
-
 def normalize_package_name(name):
     return name.lower().replace("_", "-").replace(".", "-")
 
@@ -47,7 +26,6 @@ class PYPIClient(object):
     THREAD_POOL = None
     INDEX = None
     XMLRPC = None
-    RPC_URL = None
     LOCK = None
 
     @classmethod
@@ -55,12 +33,12 @@ class PYPIClient(object):
         cls.CLIENT = AsyncHTTPClient(io_loop=IOLoop.current())
         cls.BACKEND = backend
         cls.THREAD_POOL = thread_pool
-        cls.RPC_URL = copy(backend)(path="/pypi")
-        cls.XMLRPC = ServerProxy(str(cls.RPC_URL))
+        cls.XMLRPC = ServerProxy(
+            str(copy(backend)(path="/pypi")),
+        )
         cls.LOCK = Lock()
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     @Cache(HOUR, files_cache=True, ignore_self=True)
     def packages(cls):
@@ -76,7 +54,6 @@ class PYPIClient(object):
             raise Return(index)
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     @Cache(4 * HOUR, files_cache=True, ignore_self=True)
     def search(cls, names, descriptions, operator="or"):
@@ -85,7 +62,6 @@ class PYPIClient(object):
         raise Return(result)
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     def exists(cls, name):
         try:
@@ -100,7 +76,6 @@ class PYPIClient(object):
         raise Return(True)
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     def find_real_name(cls, name):
         if not options.pypi_proxy:
@@ -117,7 +92,6 @@ class PYPIClient(object):
         raise Return(real_name)
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     @Cache(4 * HOUR, files_cache=True, ignore_self=True)
     def releases(cls, name):
@@ -145,20 +119,15 @@ class PYPIClient(object):
         raise Return(set(res))
 
     @classmethod
-    @async_retrying(5)
     @coroutine
     @Cache(MONTH, files_cache=True, ignore_self=True)
     def release_data(cls, name, version):
-        url = copy(cls.RPC_URL)
-        url.path_append(str(name), str(version), 'json')
-        log.info("Gathering info %s", url)
-
-        response = json.loads((yield cls.CLIENT.fetch(str(url))).body)
-        info = response['info']
-        files = response['urls']
+        info, files = yield [
+            cls.XMLRPC.release_data(str(name), str(version)),
+            cls.XMLRPC.release_urls(str(name), str(version))
+        ]
 
         download_url = info.get('download_url')
-
         if download_url and not files:
             try:
                 url = URL(download_url)
