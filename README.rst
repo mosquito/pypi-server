@@ -17,6 +17,7 @@ PYPI Server
 .. image:: https://img.shields.io/pypi/l/pypi-server.svg
     :target: https://pypi.python.org/pypi/pypi-server/
 
+
 Fast asynchronous pypi server implementation.
 
 What is this?
@@ -50,7 +51,7 @@ Supports right now:
 * Supported Databases:
     * Postgresql
     * Mysql (mariadb)
-    * sqlite3 (default)
+    * sqlite3 (only for development)
 
 
 Installation
@@ -98,8 +99,9 @@ If you want to support postgres or mysql database:
 
 Default admin login \ password is: admin \ admin
 
-How upload own package
-----------------------
+
+How upload your own package
+---------------------------
 
 1. Make sure what your package setup.py file is correct. Check reference at https://packaging.python.org/distributing/
 

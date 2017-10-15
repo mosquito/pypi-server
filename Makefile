@@ -13,13 +13,13 @@ deb: deb8-image ubuntu-image
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
 	    -v /tmp/pip-cache-debian:/root/.cache/pip \
-	    -e ITERATION=debian-$(COMMIT) \
+	    -e ITERATION=debian8-$(COMMIT) \
 	    pypi-server:debian8 python3 /mnt/package/make-deb.py
 
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
 	    -v /tmp/pip-cache-debian:/root/.cache/pip \
-	    -e ITERATION=ubuntu-$(COMMIT) \
+	    -e ITERATION=xenial-$(COMMIT) \
 	    pypi-server:ubuntu python3 /mnt/package/make-deb.py
 
 
