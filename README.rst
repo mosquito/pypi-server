@@ -57,9 +57,66 @@ Supports right now:
 Installation
 ------------
 
-First prepare you system.
+Docker
+++++++
 
-Centos:
+Use docker-compose with postgresql:
+
+.. code-block:: yaml
+
+    version: '2'
+
+    services:
+      db:
+        image: postgres
+        environment:
+          POSTGRES_PASSWORD: pypi-server
+          POSTGRES_USER: pypi-server
+          POSTGRES_DB: pypi-server
+        volumes:
+          - ./postgresql:/var/lib/postgresql/data
+
+      pypi_server:
+        image: mosquito/pypi-server:latest
+        links:
+          - db
+        restart: always
+        ports:
+          - 8080:80
+        volumes:
+          - ./packages:/usr/lib/pypi-server
+        environment:
+          # Database URL. Use `sqlite3:///` or `mysql://` when needed
+          DB: "postgres://pypi-server:pypi-server@db/pypi-server"
+
+          ## By default random
+          #SECRET: changeme
+
+          ## Override standard port
+          #PORT: 80
+
+          ## Set "X-Headers" for nginx (e.g. X-Accel-Expires)
+          #PROXY_MODE: 1
+
+          ## Set 0 when you want to disable proxying from global pypi
+          #PYPI_PROXY: 1
+
+          ## Tread-pool size (default cpu_count * 2)
+          #POOL_SIZE: 4
+
+          ## Maximum proxy clients count
+          #MAX_CLIENTS: 25
+
+          ## PYPI server url
+          #PYPY_SERVER: https://pypi.python.org
+
+
+Centos
+++++++
+
+Use prepared Centos 7 rpm from releases.
+
+Manual installation:
 
 .. code-block:: bash
 
@@ -73,7 +130,12 @@ Centos:
     yum install -y libpqxx-devel
 
 
-Debian (Ubuntu):
+Debian (Ubuntu)
++++++++++++++++
+
+Use prepared deb files from releases.
+
+Manual installation:
 
 .. code-block:: bash
 

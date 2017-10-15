@@ -1,6 +1,7 @@
 COMMIT = $(shell git rev-parse --verify HEAD | cut -c1-8)
+VERSION = $(shell python setup.py --version)
 
-all: rpm deb
+all: rpm deb docker-image
 
 rpm: rpm-image
 	docker run --rm -t \
@@ -32,3 +33,7 @@ deb8-image:
 
 ubuntu-image:
 	docker build -t pypi-server:ubuntu -f package/Dockerfile.ubuntu package
+
+docker-image:
+	docker build -t mosquito/pypi-server:$(VERSION) --squash .
+	docker tag mosquito/pypi-server:$(VERSION)  mosquito/pypi-server:latest
