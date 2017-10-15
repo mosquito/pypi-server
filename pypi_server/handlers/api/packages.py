@@ -16,7 +16,7 @@ class PackagesHandler(JSONHandler):
         q = Package.select(
             Package.name,
             Package.is_proxy,
-            Package.owner.login,
+            Package.owner,
             Users.login,
         ).join(
             Users, peewee.JOIN.LEFT_OUTER
