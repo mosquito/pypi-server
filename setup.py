@@ -87,7 +87,7 @@ setup(
         'six',
     ),
     extras_require={
-        'mysql': ['mysql-python'],
+        'mysql': ['mysqlclient'],
         'postgres': ['psycopg2'],
         'proxy': ['pycurl'],
     }

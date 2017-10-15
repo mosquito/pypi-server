@@ -1,0 +1,12 @@
+FROM mosquito/fpm:ubuntu
+
+RUN apt-get update && apt-get install -y python3-pip python3-dev
+RUN pip3 install -U pip virtualenv sh plumbum
+RUN apt-get install -y \
+    libcurl4-openssl-dev \
+    libffi-dev \
+    libmysqlclient-dev \
+    libpq-dev \
+    libxml2-dev \
+    libxslt1-dev
+

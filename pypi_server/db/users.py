@@ -43,7 +43,7 @@ class PasswordHash(text_type):
 class PasswordField(p.TextField):
     __slots__ = ('bcrypt_iterations', )
 
-    def __init__(self, iterations=12, *args, **kwargs):
+    def __init__(self, iterations=4, *args, **kwargs):
         self.bcrypt_iterations = int(iterations)
         super(PasswordField, self).__init__(*args, **kwargs)
 

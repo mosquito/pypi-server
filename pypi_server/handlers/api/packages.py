@@ -1,6 +1,6 @@
 # encoding: utf-8
 import peewee
-from pypi_server.db.packages import Package, PackageVersion, PackageFile
+from pypi_server.db.packages import Package
 from pypi_server.db.users import Users
 from pypi_server.handlers import route
 from pypi_server.handlers.api import JSONHandler
@@ -14,7 +14,7 @@ class PackagesHandler(JSONHandler):
     @threaded
     def get(self):
         q = Package.select(
-            Package,
+            Package.name,
             Users.login,
         ).join(
             Users, peewee.JOIN.LEFT_OUTER
