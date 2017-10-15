@@ -60,7 +60,7 @@ Installation
 Docker
 ++++++
 
-Use docker-compose with postgresql:
+Use `docker image`_ and following `docker-compose.yml`_ (uses postgresql):
 
 .. code-block:: yaml
 
@@ -95,7 +95,7 @@ Use docker-compose with postgresql:
           ## Override standard port
           #PORT: 80
 
-          ## Set "X-Headers" for nginx (e.g. X-Accel-Expires)
+          ## Set "X-Headers" (e.g. X-Forwarded-For)
           #PROXY_MODE: 1
 
           ## Set 0 when you want to disable proxying from global pypi
@@ -114,7 +114,7 @@ Use docker-compose with postgresql:
 Centos
 ++++++
 
-Use prepared Centos 7 rpm from releases.
+Use prepared Centos 7 rpm from `releases`_.
 
 Manual installation:
 
@@ -133,7 +133,7 @@ Manual installation:
 Debian (Ubuntu)
 +++++++++++++++
 
-Use prepared deb files from releases.
+Use prepared deb files from `releases`_.
 
 Manual installation:
 
@@ -186,3 +186,8 @@ How upload your own package
 
     cd your_package_root_folder
     python setup.py sdist register upload -r mypypi
+
+
+.. _releases: https://github.com/mosquito/pypi-server/releases/
+.. _docker image: https://hub.docker.com/r/mosquito/pypi-server/
+.. _docker-compose.yml: https://github.com/mosquito/pypi-server/blob/master/docker-compose.yml

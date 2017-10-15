@@ -29,7 +29,7 @@ services:
       ## Override standard port
       #PORT: 80
 
-      ## Set "X-Headers" for nginx (e.g. X-Accel-Expires)
+      ## Set "X-Headers" (e.g. X-Forwarded-For)
       #PROXY_MODE: 1
 
       ## Set 0 when you want to disable proxying from global pypi
