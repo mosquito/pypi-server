@@ -23,6 +23,10 @@ services:
       # Database URL. Use `sqlite3:///` or `mysql://` when needed
       DB: "postgres://pypi-server:pypi-server@db/pypi-server"
 
+      ## if you want to set PGUSER and PGPASSWORD in env 
+
+      #PGUSER: pypi-server
+      #PGPASSWORD: pypi-server
       ## By default random
       #SECRET: changeme
 

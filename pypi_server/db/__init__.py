@@ -60,8 +60,8 @@ def init_postgres(url):
 
     DB.initialize(PostgresqlDatabase(
         database=db_name,
-        user=url.user or '',
-        password=url.password or '',
+        user=url.user or None,
+        password=url.password or None,
         host=url.host,
         autocommit=bool(url.get('autocommit', True)),
         autorollback=bool(url.get('autorollback', True))
