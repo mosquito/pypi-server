@@ -1,2 +1,2 @@
-*
-!dist/*.rpm
+dist/
+build/
