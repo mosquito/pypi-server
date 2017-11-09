@@ -17,7 +17,10 @@ RUN set -ex \
 		libxml2-dev \
 		libxslt-dev \
 		curl-dev \
+	&& pip install \
+		PyMySQL \
 	&& python setup.py install --prefix=/usr/local \
+	&& rm -rf /usr/local/src/{*,.*??} \
 	&& find /usr/local -depth \
 	\( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
 	-exec rm -rf '{}' + \
@@ -28,9 +31,10 @@ RUN set -ex \
 		  | xargs -r apk info --installed \
 		  | sort -u \
 		)" \
-	&& apk add --virtual .pypi-server-rundeps $runDeps \
-	&& apk del .build-deps \
-	&& rm -rf ~/.cache
+	&& apk add --no-cache --virtual .pypi-server-rundeps \
+		$runDeps \
+		py-psycopg2 \
+	&& apk del .build-deps
 
 VOLUME "/usr/lib/pypi-server"
 
