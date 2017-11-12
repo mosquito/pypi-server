@@ -1,7 +1,7 @@
 COMMIT = $(shell git rev-parse --verify HEAD | cut -c1-8)
 VERSION = $(shell python setup.py --version)
 
-all: rpm deb docker-image
+all: docker-image rpm deb
 
 rpm: rpm-image
 	docker run --rm -t \
