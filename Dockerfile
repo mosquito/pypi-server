@@ -19,15 +19,14 @@ COPY ./ /tmp
 
 RUN set -ex && \
   apk add --no-cache --virtual .build-deps gcc py-pip python-dev musl-dev && \
-  pip list && \
-  pip install '/tmp' && \
+  pip --no-cache-dir install '/tmp' && \
   apk del .build-deps
 
 VOLUME "/usr/lib/pypi-server"
 
-COPY docker-entrypoint.sh /entrypoint.sh
-RUN rm -rf /root/.cache /var/cache/*
+COPY docker-entrypoint.py /usr/local/bin/entrypoint.py
+RUN chmod a+x /usr/local/bin/entrypoint.py
 
 EXPOSE 80
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.py"]
