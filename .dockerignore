@@ -1,2 +1,3 @@
-*
-!dist/*.rpm
+.git/
+dist/
+build/
