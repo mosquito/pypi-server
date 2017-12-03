@@ -27,6 +27,7 @@ services:
 
       #PGUSER: pypi-server
       #PGPASSWORD: pypi-server
+
       ## By default random
       #SECRET: changeme
 
@@ -47,3 +48,9 @@ services:
 
       ## PYPI server url
       #PYPI_SERVER: https://pypi.python.org
+
+      ## Use for attach a debugger
+      #DEBUG: 0
+
+      ## Compress responses (default False)
+      #GZIP: 0
