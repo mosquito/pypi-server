@@ -46,4 +46,4 @@ services:
       #MAX_CLIENTS: 25
 
       ## PYPI server url
-      #PYPY_SERVER: https://pypi.python.org
+      #PYPI_SERVER: https://pypi.python.org
