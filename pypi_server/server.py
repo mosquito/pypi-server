@@ -76,6 +76,10 @@ define("max_http_clients",
        help="Maximum HTTP Client instances for proxy requests (default 25) [ENV:MAX_CLIENTS]",
        default=int(os.getenv("MAX_CLIENTS", '25')), type=int)
 
+define("max_body_size",
+       help="Maximum HTTP Client body size for proxy requests (in megabytes, default 100) [ENV:MAX_BODY_SIZE]",
+       default=int(os.getenv("MAX_BODY_SIZE", '100')), type=int)
+
 define("pypi_server",
        help="PYPI service url. Using for proxy. (default https://pypi.python.org/) [ENV:PYPY_SERVER]",
        default=URL(os.getenv("PYPI_SERVER", 'https://pypi.python.org/')), type=URL)
@@ -161,7 +165,7 @@ def run():
         log.info("Init thread pool with %d threads", options.pool_size)
         handlers.base.BaseHandler.THREAD_POOL = futures.ThreadPoolExecutor(options.pool_size)
 
-        AsyncHTTPClient.configure(None, max_clients=options.max_http_clients)
+        AsyncHTTPClient.configure(None, max_clients=options.max_http_clients, max_body_size=options.max_body_size*1024*1204)
 
         proxy_url = URL(os.getenv('{0}_proxy'.format(options.pypi_server.scheme)))
         if proxy_url:

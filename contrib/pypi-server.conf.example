@@ -8,3 +8,4 @@ pool_size = 16
 secret = 'change me please'
 database = URL('sqlite:///tmp/test.db')
 user = 'nobody'
+max_body_size = 200  # in megabytes
