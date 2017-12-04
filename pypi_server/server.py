@@ -165,7 +165,7 @@ def run():
         log.info("Init thread pool with %d threads", options.pool_size)
         handlers.base.BaseHandler.THREAD_POOL = futures.ThreadPoolExecutor(options.pool_size)
 
-        AsyncHTTPClient.configure(None, max_clients=options.max_http_clients, max_body_size=options.max_body_size*1024*1204)
+        AsyncHTTPClient.configure(None, max_clients=options.max_http_clients, max_body_size=options.max_body_size*1024*1024)
 
         proxy_url = URL(os.getenv('{0}_proxy'.format(options.pypi_server.scheme)))
         if proxy_url:
