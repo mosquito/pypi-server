@@ -81,6 +81,8 @@ class FileHandler(BaseHandler):
 
                 while data:
                     data = yield reader(self.CHUNK_SIZE)
+                    if not data:
+                        break
                     self.write(data)
                     yield Task(self.flush)
 
