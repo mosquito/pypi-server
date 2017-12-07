@@ -79,8 +79,8 @@ class FileHandler(BaseHandler):
                 self.write(data)
                 yield Task(self.flush)
 
-                while data:
-                    data = yield reader(self.CHUNK_SIZE)
+                for chunk in iter(lambda: reader(self.CHUNK_SIZE), None):
+                    data = yield chunk
                     if not data:
                         break
                     self.write(data)
