@@ -33,17 +33,22 @@ if __name__ == '__main__':
     if not args or args[0].startswith('-'):
         db_url = parse_url(os.getenv('DB', ''))
         host = db_url.hostname
-        port = int(db_url.port or DEFAULT_PORTS[db_url.scheme])
+
+        if 'sqlite' in db_url.scheme.lower():
+            port = None
+        else:
+            port = int(db_url.port or DEFAULT_PORTS[db_url.scheme])
 
         args.insert(0, '/usr/bin/pypi-server')
 
-        while not check_port(db_url.hostname, port):
+        while port and not check_port(db_url.hostname, port):
             log.info('Awaiting database...')
             sleep(1)
             continue
 
         # Ensure database engine is ready
-        sleep(5)
+        if port:
+            sleep(5)
 
     executable = args[0]
 
