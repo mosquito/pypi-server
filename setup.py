@@ -77,10 +77,10 @@ setup(
     },
     packages=find_packages(exclude=('tests',)),
     install_requires=(
-        'tornado>=4.3',
+        'tornado>=4.3,<5',
         'tornado-xmlrpc',
         'slimurl',
-        'peewee',
+        'peewee<3',
         'bcrypt>=2.0',
         'lxml',
         'futures',
