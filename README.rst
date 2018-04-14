@@ -25,7 +25,7 @@ What is this?
 
 pypi.python.org - is a global package repository of the python packages. This package is a self-hosted pypi service with caching functionallity from the global pypi.
 
-HTTP proxy can't works with XML-RPC of pypi.python.org.
+HTTP proxy can't work with XML-RPC of pypi.python.org.
 
 Screenshots
 -----------
@@ -162,10 +162,10 @@ If you want to support postgres or mysql database:
 Default admin login \ password is: admin \ admin
 
 
-How upload your own package
+How to upload your own package
 ---------------------------
 
-1. Make sure what your package setup.py file is correct. Check reference at https://packaging.python.org/distributing/
+1. Make sure that your package setup.py file is correct. Check reference at https://packaging.python.org/distributing/
 
 2. Create at home directory .pypirc
 
