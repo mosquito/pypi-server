@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2.7
 import socket
 import os
 import sys
@@ -31,7 +31,9 @@ if __name__ == '__main__':
     args = sys.argv[1:]
 
     if not args or args[0].startswith('-'):
-        db_url = parse_url(os.getenv('DB', ''))
+        db_url = parse_url(os.getenv(
+            'DB', "sqlite:///var/lib/pypi-server/pypi-server.sqlite3"
+        ))
         host = db_url.hostname
 
         if 'sqlite' in db_url.scheme.lower():
