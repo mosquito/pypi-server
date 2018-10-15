@@ -5,6 +5,7 @@ RUN yum install -y python-pip python-devel make gcc
 RUN pip install -U pip virtualenv sh plumbum
 RUN yum install -y \
     libcurl-devel \
+    libcurl-openssl-devel \
     libffi-devel \
     libpqxx-devel \
     libxml2-devel \
@@ -12,3 +13,5 @@ RUN yum install -y \
     mariadb-devel \
     openssl-devel \
     postgresql-devel
+
+ENV PYCURL_SSL_LIBRARY=openssl
