@@ -1,4 +1,4 @@
-FROM mosquito/fpm:debian8
+FROM mosquito/fpm:debian9
 
 RUN apt-get update && apt-get install -y python3-pip python3-dev
 RUN pip3 install -U pip virtualenv sh plumbum

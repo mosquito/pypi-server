@@ -10,12 +10,18 @@ rpm: rpm-image
 	    -e ITERATION=$(COMMIT) \
 	    pypi-server:centos7 python /mnt/package/make-rpm.py
 
-deb: deb8-image ubuntu-image
+deb: deb8-image deb8-image ubuntu-image
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
 	    -v /tmp/pip-cache-debian:/root/.cache/pip \
 	    -e ITERATION=debian8-$(COMMIT) \
 	    pypi-server:debian8 python3 /mnt/package/make-deb.py
+
+	docker run --rm -t \
+		-v $(PWD):/mnt \
+		-v /tmp/pip-cache-debian:/root/.cache/pip \
+		-e ITERATION=debian9-$(COMMIT) \
+		pypi-server:debian9 python3 /mnt/package/make-deb.py
 
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
@@ -30,6 +36,9 @@ rpm-image:
 
 deb8-image:
 	docker build -t pypi-server:debian8 -f package/Dockerfile.debian8 package
+
+deb9-image:
+	docker build -t pypi-server:debian9 -f package/Dockerfile.debian9 package
 
 ubuntu-image:
 	docker build -t pypi-server:ubuntu -f package/Dockerfile.ubuntu package
