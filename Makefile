@@ -10,19 +10,35 @@ rpm: rpm-image
 	    -e ITERATION=$(COMMIT) \
 	    pypi-server:centos7 python /mnt/package/make-rpm.py
 
-deb: deb8-image ubuntu-image
+deb: deb-deb8 deb-deb9 deb-xenial deb-bionic
+
+deb-deb8: deb8-image
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
 	    -v /tmp/pip-cache-debian:/root/.cache/pip \
 	    -e ITERATION=debian8-$(COMMIT) \
 	    pypi-server:debian8 python3 /mnt/package/make-deb.py
 
+deb-deb9: deb9-image
+	docker run --rm -t \
+		-v $(PWD):/mnt \
+		-v /tmp/pip-cache-debian:/root/.cache/pip \
+		-e ITERATION=debian9-$(COMMIT) \
+		pypi-server:debian9 python3 /mnt/package/make-deb.py
+
+deb-xenial: xenial-image
 	docker run --rm -t \
 	    -v $(PWD):/mnt \
 	    -v /tmp/pip-cache-debian:/root/.cache/pip \
 	    -e ITERATION=xenial-$(COMMIT) \
-	    pypi-server:ubuntu python3 /mnt/package/make-deb.py
+	    pypi-server:xenial python3 /mnt/package/make-deb.py
 
+deb-bionic: bionic-image
+	docker run --rm -t \
+		-v $(PWD):/mnt \
+		-v /tmp/pip-cache-debian:/root/.cache/pip \
+		-e ITERATION=bionic-$(COMMIT) \
+		pypi-server:bionic python3 /mnt/package/make-deb.py
 
 
 rpm-image:
@@ -31,8 +47,14 @@ rpm-image:
 deb8-image:
 	docker build -t pypi-server:debian8 -f package/Dockerfile.debian8 package
 
-ubuntu-image:
-	docker build -t pypi-server:ubuntu -f package/Dockerfile.ubuntu package
+deb9-image:
+	docker build -t pypi-server:debian9 -f package/Dockerfile.debian9 package
+
+xenial-image:
+	docker build -t pypi-server:xenial -f package/Dockerfile.xenial package
+
+bionic-image:
+	docker build -t pypi-server:bionic -f package/Dockerfile.bionic package
 
 docker-image:
 	docker build -t mosquito/pypi-server:$(VERSION) --squash .
