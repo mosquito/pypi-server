@@ -46,6 +46,7 @@ def init_mysql(url):
         user=url.user or '',
         password=url.password or '',
         host=url.host,
+        port=url.port,
         autocommit=bool(url.get('autocommit', True)),
         autorollback=bool(url.get('autorollback', True))
     ))
@@ -63,6 +64,7 @@ def init_postgres(url):
         user=url.user or None,
         password=url.password or None,
         host=url.host,
+        port=url.port,
         autocommit=bool(url.get('autocommit', True)),
         autorollback=bool(url.get('autorollback', True))
     ))
