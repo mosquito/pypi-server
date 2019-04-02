@@ -37,6 +37,7 @@ args = (
     '-v', version,
     '-p', "/mnt/dist",
     '-d', 'python3',
+    '-d', 'python3-distutils',
 )
 
 depends = check_output((
