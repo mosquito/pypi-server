@@ -12,7 +12,7 @@ RUN apt-get update && \
         libxslt1-dev \
         libffi-dev
 
-RUN virtualenv -p python2.7 /usr/share/python/app
+RUN virtualenv -p python3.7 /usr/share/python/app
 
 RUN /usr/share/python/app/bin/pip install -U \
     pypi-server[postgres] \
@@ -24,7 +24,7 @@ COPY docker-entrypoint.py /usr/share/python/app/bin/entrypoint.py
 RUN chmod a+x /usr/share/python/app/bin/entrypoint.py
 
 #################################################################
-FROM snakepacker/python:2.7
+FROM snakepacker/python:3.7
 
 RUN apt-get update && \
     apt-get install -y \
