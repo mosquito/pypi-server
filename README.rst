@@ -84,7 +84,7 @@ Use `docker image`_ and following `docker-compose.yml`_ (uses postgresql):
         ports:
           - 8080:80
         volumes:
-          - ./packages:/usr/lib/pypi-server
+          - ./packages:/var/lib/pypi-server
         environment:
           # Database URL. Use `sqlite3:///` or `mysql://` when needed
           DB: "postgres://pypi-server:pypi-server@db/pypi-server"
