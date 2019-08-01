@@ -82,7 +82,8 @@ setup(
         'slimurl',
         'peewee<3',
         'bcrypt>=2.0',
-        'lxml',
+        # For building with Debian. By default is uses python3.4
+        'lxml<4.4',
         'futures',
         'six',
     ),

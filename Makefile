@@ -57,5 +57,5 @@ bionic-image:
 	docker build -t pypi-server:bionic -f package/Dockerfile.bionic package
 
 docker-image:
-	docker build -t mosquito/pypi-server:$(VERSION) --squash .
+	docker build -t mosquito/pypi-server:$(VERSION) .
 	docker tag mosquito/pypi-server:$(VERSION)  mosquito/pypi-server:latest
