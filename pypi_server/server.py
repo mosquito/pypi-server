@@ -5,6 +5,7 @@ import errno
 import signal
 import pwd
 import os
+import ssl
 from slimurl import URL
 from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
@@ -47,6 +48,13 @@ define("secret", help="Cookie secret (default random) [ENV:SECRET]",
        default=os.getenv("SECRET", uuid.uuid4().bytes))
 
 define("user", help="Change UID of current process (not change by default)", default=None)
+
+define("cert", help="Path to the Certificate, make sure you have the full chain to prevent" \
+ "SSL auth errors (Only valid if ssl is true", default=None)
+
+define("key", help="Path to private key (Only valid if ssl is true", default=None)
+
+define("ssl", help="Enadles SSL for the local pypi server", default=False)
 
 default_storage=os.path.abspath(
         os.getenv(
@@ -191,8 +199,16 @@ def run():
             io_loop.add_callback(PYPIClient.packages)
             io_loop.add_callback(pypi_updater.start)
 
-        log.info("Starting server http://%s:%d/", options.address, options.port)
-        http_server = HTTPServer(app, xheaders=options.proxy_mode)
+        server_message = "Starting server http://{}:{}/".format(options.address, options.port)
+        
+        ssl_ctx = None
+        if options.ssl:
+            ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_ctx.load_cert_chain(options.cert, options.key)
+            server_message = "Starting server https://{}:{}/".format(options.address, options.port)
+
+        log.info(server_message)
+        http_server = HTTPServer(app, ssl_options=ssl_ctx, xheaders=options.proxy_mode)
         http_server.listen(options.port, address=options.address)
 
         log.debug('Setting "%s" as storage', options.storage)
