@@ -1,4 +1,15 @@
-recursive-include pypi_server/static *.js *.css *.png *.jp* *.html *.ttf *.woff* *.svg *.eot *.gif *.ico
+recursive-include pypi_server/static *.js *.css *.png *.jp* *.html *.ttf *.woff* *.svg *.eot *.gif *.ico *.map
 recursive-include pypi_server/templates *.html
 recursive-include contrib *.example *.conf *.service
+recursive-include tests *.py
+include LICENSE
 include README.rst
+include .dockerignore
+include docker-entrypoint.py
+include docker-compose.yml
+include Dockerfile
+include Makefile
+include tox.ini
+graft package
+exclude screenshots
+recursive-exclude screenshots *.png
