@@ -167,7 +167,7 @@ How to upload your own package
 
 1. Make sure that your package setup.py file is correct. Check reference at https://packaging.python.org/distributing/
 
-2. Create at home directory .pypirc
+2. Create at home directory .pypirc (Note: If your pypi-server is running at http://pip.example.com:8088, the upload URL will be http://pip.example.com:8088/pypi)
 
 .. code-block::
 
@@ -176,7 +176,7 @@ How to upload your own package
         mypypi
 
     [mypypi]
-    repository=http://example.com/pypi
+    repository=http://pip.example.com:8088/pypi
     username=admin
     password=admin
 
@@ -187,6 +187,32 @@ How to upload your own package
     cd your_package_root_folder
     python setup.py sdist register upload -r mypypi
 
+
+How to download your package
+----------------------------
+
+.. code-block:: bash
+
+    pip install -i http://pip.example.com:8088/simple --trusted-host pip.example.com  my-package-name
+    
+If you want to configure pip to always pull from http://pip.example.com:8088 (which, since pypi-server proxies to pypi.org if it doesn't have a package, probably is what you want to do), you can make a `pip.conf`
+
+.. code-block:: bash
+
+    cat ~/.pip/pip.conf
+    [global]
+    index-url = http://pip.example.com:8088/simple/
+
+If you don't have an SSL cert for your PyPi server, you probably want to also tell pip to trust that domain anyway,
+
+.. code-block:: bash
+
+    cat ~/.pip/pip.conf
+    [global]
+    index-url = http://pip.example.com:8088/simple/
+    
+    [install]
+    trusted-host=pip.example.com
 
 .. _releases: https://github.com/mosquito/pypi-server/releases/
 .. _docker image: https://hub.docker.com/r/mosquito/pypi-server/
