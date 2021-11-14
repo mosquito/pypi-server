@@ -6,9 +6,9 @@ from pypi_server.db.migrator import migration
 
 @migration(8)
 def add_uniquie_basename_index(migrator, db):
-    # Index already exists from previous migrations
-    if isinstance(db, PostgresqlDatabase):
-        pass
+    if isinstance(db.obj, PostgresqlDatabase):
+        # Index already exists from previous migrations
+        return
     try:
         migrate(
             migrator.add_index('packagefile', ('basename',), True)
