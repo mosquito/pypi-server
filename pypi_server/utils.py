@@ -1,7 +1,8 @@
 import asyncio
-from typing import Union, Coroutine, Any, AsyncIterable, TypeVar, Set
+from typing import Any, AsyncIterable, Coroutine, Set, TypeVar, Union
 
 from aiochannel import Channel
+
 
 T = TypeVar("T")
 

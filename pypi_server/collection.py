@@ -1,16 +1,16 @@
 import asyncio
-from typing import (
-    Any, AsyncIterable, List, MutableSequence, Sequence, Set, TypeVar, overload,
-)
+from typing import Any, AsyncIterable, List, MutableSequence, TypeVar, Union
 
 from aiochannel import Channel
 
-from .utils import strict_gather, join_iterators
+from .utils import fanout_iterators, join_iterators, strict_gather
+
 
 T = TypeVar("T")
+R = TypeVar("R")
 
 
-class PluginCollection(MutableSequence[T]):
+class Collection(MutableSequence[T]):
     STREAM_BUFFER = 128
 
     def __init__(self):
@@ -28,14 +28,6 @@ class PluginCollection(MutableSequence[T]):
     def __len__(self) -> int:
         return len(self.__items)
 
-    @overload
-    def __getitem__(self, index: slice) -> Sequence[T]:
-        return self.__items[index]
-
-    @overload
-    def __getitem__(self, index: int) -> T:
-        return self.__items[index]
-
     def __getitem__(self, index: int) -> T:
         return self.__items[index]
 
@@ -47,9 +39,31 @@ class PluginCollection(MutableSequence[T]):
 
     async def stream(
         self, method: str, *args: Any, **kwargs: Any
-    ) -> AsyncIterable[T]:
+    ) -> AsyncIterable[R]:
         iterators = [getattr(item, method)(*args, **kwargs) for item in self]
         async for item in join_iterators(
             *iterators, stream_buffer=self.STREAM_BUFFER
         ):
             yield item
+
+    async def fanout(
+        self, method: str,
+        iterator: Union[AsyncIterable[R]],
+        *args: Any, **kwargs: Any,
+    ) -> None:
+        channels: List[Channel[T]] = []
+        tasks: List[asyncio.Task] = []
+
+        channel: Channel[T]
+        for item in self:
+            channel = Channel(self.STREAM_BUFFER)
+            channels.append(channel)
+            tasks.append(
+                asyncio.create_task(
+                    getattr(item, method)(channel, *args, **kwargs),
+                ),
+            )
+        await strict_gather(
+            fanout_iterators(iterator, *channels),
+            *tasks
+        )

@@ -1,9 +1,10 @@
 import asyncio
+from typing import AsyncIterable
 
 import pytest
 from pytest_subtests import SubTests
 
-from pypi_server import PluginCollection
+from pypi_server import Collection
 
 
 class SamplePlugin:
@@ -41,17 +42,30 @@ class SamplePlugin:
             await asyncio.sleep(0)
             yield i
 
+    async def get_sum(self, iterable: AsyncIterable[int], expected: int):
+        result = 0
 
-class SamplePluginCollection(PluginCollection[SamplePlugin]):
+        async for item in iterable:
+            result += item
+
+        assert result == expected
+
+
+class SampleCollection(Collection[SamplePlugin]):
     pass
 
 
 async def test_suites(subtests: SubTests):
-    collection = SamplePluginCollection()
+    collection = SampleCollection()
     plugins = [SamplePlugin() for _ in range(10)]
 
-    for plugin in plugins:
-        collection.append(plugin)
+    with subtests.test():
+        for plugin in plugins:
+            collection.append(plugin)
+
+        collection[0] = plugins[0]
+        assert collection[1] == plugins[1]
+        assert collection[0:2] == plugins[0:2]
 
     with subtests.test():
         ids = await collection.gather("get_id")
@@ -95,3 +109,14 @@ async def test_suites(subtests: SubTests):
         with pytest.raises(ValueError):
             async for _ in collection.stream("get_stream"):
                 pass
+
+    with subtests.test():
+        iterations = 100
+
+        async def iterator():
+            for i in range(iterations):
+                await asyncio.sleep(0)
+                yield i
+
+        await collection.fanout("get_sum", iterator(), sum(range(100)))
+

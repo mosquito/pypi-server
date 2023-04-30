@@ -4,7 +4,7 @@ from typing import List
 import pytest
 from aiochannel import Channel
 
-from pypi_server.utils import join_iterators, fanout_iterators, strict_gather
+from pypi_server.utils import fanout_iterators, join_iterators, strict_gather
 
 
 async def test_strict_gather_cancel():

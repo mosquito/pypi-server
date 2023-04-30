@@ -4,7 +4,7 @@ from typing import AsyncIterable, Iterable, List
 
 from aiochannel import Channel
 
-from pypi_server.plugin_collection import PluginCollection
+from pypi_server.collection import Collection
 
 
 class BytesPayload:
@@ -31,7 +31,7 @@ class Storage(ABC):
         pass
 
 
-class Storages(PluginCollection[Storage]):
+class Storages(Collection[Storage]):
     STORE_CHUNKS_BUFFER = 64
 
     async def setup(self) -> None:

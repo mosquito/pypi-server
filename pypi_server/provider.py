@@ -7,6 +7,3 @@ T = TypeVar("T")
 
 class Provider(AsyncIterable[T], ABC):
     pass
-
-
-
