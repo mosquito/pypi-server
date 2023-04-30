@@ -1,52 +1,42 @@
+#################################################################
+####################### BUILD STAGE #############################
+#################################################################
+# This image contains:
+# 1. All the Python versions
+# 2. required python headers
+# 3. C compiler and developer tools
 FROM snakepacker/python:all as builder
 
 MAINTAINER Mosquito <me@mosquito.su>
 
-RUN apt-get update && \
-    apt-get install -y \
-        libcurl-openssl1.0-dev \
-        libmysqlclient-dev \
-        libpq-dev \
-        libssl1.0-dev \
-        libxml2-dev \
-        libxslt1-dev \
-        libffi-dev
+RUN apt-install libcurl-openssl1.0-dev libmysqlclient-dev libpq-dev \
+    libssl1.0-dev libxml2-dev libxslt1-dev libffi-dev
 
-RUN virtualenv -p python3.7 /usr/share/python/app
+ADD dist/*.whl /tmp
 
-RUN /usr/share/python/app/bin/pip install -U \
-    pypi-server[postgres] \
-    pypi-server[mysql] \
-    pypi-server[proxy]
+# Create virtualenv on python 3.10
+# Target folder should be the same on the build stage and on the target stage
+RUN virtualenv -p python3.10 /usr/share/python3/app
 
-COPY docker-entrypoint.py /usr/share/python/app/bin/entrypoint.py
+# Install target package
+RUN /usr/share/python3/app/bin/pip install -U /tmp/*.whl
 
-RUN chmod a+x /usr/share/python/app/bin/entrypoint.py
+# Will be find required system libraries and their packages
+RUN find-libdeps /usr/share/python3/app > /usr/share/python3/app/pkgdeps.txt
 
 #################################################################
-FROM snakepacker/python:3.7
+####################### TARGET STAGE ############################
+#################################################################
+# Use the image version used on the build stage
+FROM snakepacker/python:3.10
 
-RUN apt-get update && \
-    apt-get install -y \
-        libcurl3 \
-        libmysqlclient20 \
-        libpq5 \
-        libssl1.0.0 \
-        libxml2 \
-        libxslt1.1 \
-        libffi6 && \
-    apt-get clean && \
-    rm -fr /var/lib/apt/lists/*
+# Copy virtualenv to the target image
+COPY --from=builder /usr/share/python3/app /usr/share/python3/app
 
-ENV ADDRESS=0.0.0.0
-ENV PORT=80
-ENV STORAGE=/var/lib/pypi-server
+# Install the required library packages
+RUN xargs -ra /usr/share/python3/app/pkgdeps.txt apt-install
 
-EXPOSE 80
+# Create a symlink to the target binary (just for convenience)
+RUN ln -snf /usr/share/python3/app/bin/pypi-server /usr/bin/
 
-COPY --from=builder /usr/share/python/app /usr/share/python/app
-RUN ln -snf /usr/share/python/app/bin/entrypoint.py /usr/bin/ && \
-    ln -snf /usr/share/python/app/bin/pypi-server /usr/bin/
-
-ENTRYPOINT /usr/bin/entrypoint.py
 VOLUME "/var/lib/pypi-server"
