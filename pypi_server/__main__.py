@@ -67,7 +67,3 @@ def main():
 
     ctx = contextvars.copy_context()
     ctx.run(run, parser=parser, plugins=plugins)
-
-
-if __name__ == "__main__":
-    main()

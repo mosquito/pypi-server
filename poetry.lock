@@ -608,6 +608,22 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
+name = "pytest-subtests"
+version = "0.10.0"
+description = "unittest subTest() support and subtests fixture"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pytest-subtests-0.10.0.tar.gz", hash = "sha256:d9961a67c1791e8c1e32dce7a70ed1e54f3b1e641087f2094f2d37087ab7fb17"},
+    {file = "pytest_subtests-0.10.0-py3-none-any.whl", hash = "sha256:03a50a14f7981cd03090e8ca94205d783e290266d828728210c3d79f4d00c46f"},
+]
+
+[package.dependencies]
+attrs = ">=19.2.0"
+pytest = ">=7.0"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -710,4 +726,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "546b0a0873f90528825dfe25e20cc30537a6d8f0feadb3b14bb50126ae094414"
+content-hash = "8a8ae001b3f3ba8fcc40cfb1f3f019735e2305f468e754a1948ffa332e44f75a"

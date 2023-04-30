@@ -38,7 +38,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 aiomisc = {extras = ["aiohttp"], version = "^17.1.4"}
 aiohttp = "3.8.1"
 argclass = "^0.9.2"
@@ -47,6 +47,7 @@ aiochannel = "^1.2.1"
 [tool.poetry.group.dev.dependencies]
 aiomisc-pytest = "^1.1.1"
 pytest-cov = "^4.0.0"
+pytest-subtests = "^0.10.0"
 
 [tool.poetry.scripts]
 pypi-server = "pypi_server.__main__:main"
