@@ -2,6 +2,8 @@ import contextvars
 import re
 from typing import Any, Dict, Optional, Type, TypeVar
 
+from weakref import WeakKeyDictionary
+
 import aiomisc_log
 import argclass
 
@@ -55,13 +57,13 @@ class Parser(argclass.Parser):
     )
 
 
-def _make_parser_type(**groups: argclass.Group) -> Type[Parser]:
+def make_parser_type(**groups: argclass.Group) -> Type[Parser]:
     groups["log"] = LogGroup(title="Logging options")
     return type("Parser", (Parser,), groups)     # type: ignore
 
 
-_REGISTRY = {}
-_REV_REGISTRY = {}
+REGISTRY = {}
+_REV_REGISTRY = WeakKeyDictionary()
 _GROUP_NAME_EXP = re.compile(r"(?<!^)(?=[A-Z])")
 
 
@@ -74,20 +76,20 @@ def register_parser_group(group: Group, *, name: str = "") -> None:
     if " " in name:
         raise ValueError(f"Bad parser name {name!r}")
 
-    if name in _REGISTRY:
-        raise ValueError(f"Group already registered by {_REGISTRY[name]!r}")
+    if name in REGISTRY:
+        raise ValueError(f"Group already registered by {REGISTRY[name]!r}")
 
-    _REGISTRY[name] = group
+    REGISTRY[name] = group
     _REV_REGISTRY[type(group)] = name
 
 
 def unregister_parser_group(group: Group) -> None:
     name = _REV_REGISTRY.pop(type(group), None)
-    _REGISTRY.pop(name, None)
+    REGISTRY.pop(name, None)
 
 
-def _make_parser(**kwargs) -> Parser:
-    parser_type = _make_parser_type(**_REGISTRY)
+def make_parser(**kwargs) -> Parser:
+    parser_type = make_parser_type(**REGISTRY)
     return parser_type(**kwargs)
 
 

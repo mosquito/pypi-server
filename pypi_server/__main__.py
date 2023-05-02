@@ -12,7 +12,7 @@ from aiomisc.entrypoint import CURRENT_ENTRYPOINT
 
 from pypi_server.storage import STORAGES
 
-from .arguments import CURRENT_PARSER, Parser, _make_parser
+from .arguments import CURRENT_PARSER, Parser, make_parser
 from .plugins import setup_plugins
 
 
@@ -46,7 +46,7 @@ def main():
     aiomisc_log.basic_config()
 
     plugins = dict(setup_plugins())
-    parser = _make_parser(
+    parser = make_parser(
         description=open(Path(__file__).parent / "description.txt").read(),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         config_files=tuple(

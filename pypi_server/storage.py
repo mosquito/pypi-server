@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import asyncio
 from abc import ABC, abstractmethod
-from typing import AsyncIterable, Iterable, List
+from pathlib import Path
+from typing import AsyncIterable, List
 
 from aiochannel import Channel
+from aiomisc.io import async_open
 
-from pypi_server.collection import Collection
+from .collection import Collection
+from .utils import fanout_iterators, strict_gather
 
 
 class BytesPayload:
@@ -16,59 +21,59 @@ class BytesPayload:
         async for chunk in self.payload:
             yield chunk
 
+    @classmethod
+    def from_path(
+        cls, path: Path, chunk_size: int = 65535,
+    ) -> BytesPayload:
+        async def iterator() -> AsyncIterable[bytes]:
+            async with async_open(path, "rb") as afp:
+                chunk = await afp.read(chunk_size)
+                while chunk:
+                    yield chunk
+                    chunk = await afp.read(chunk_size)
+        return cls(path.stat().st_size, iterator())
+
 
 class Storage(ABC):
     @abstractmethod
-    async def setup(self) -> None:
-        pass
+    async def setup(self) -> None: ...
 
     @abstractmethod
-    async def put(self, object_id: str, body: BytesPayload) -> None:
-        pass
+    async def put(self, object_id: str, body: BytesPayload) -> None: ...
 
     @abstractmethod
-    def get(self, object_id: str) -> BytesPayload:
-        pass
+    def get(self, object_id: str) -> BytesPayload: ...
 
 
-class Storages(Collection[Storage]):
+class StorageCollection(Collection[Storage]):
     STORE_CHUNKS_BUFFER = 64
 
     async def setup(self) -> None:
         await self.gather("setup")
 
-    @staticmethod
-    async def __multiplicator(
-        channels: Iterable[Channel[bytes]], body: AsyncIterable[bytes],
+    async def put(
+        self, object_id: str, body: BytesPayload,
+        buffer: int = STORE_CHUNKS_BUFFER,
     ) -> None:
+        if not self:
+            raise RuntimeError("No storages")
+
+        channels: List[Channel[bytes]] = []
+        tasks: List[asyncio.Task[None]] = []
+
+        for storage in self:
+            channel = Channel(buffer)
+            payload = BytesPayload(body.size, channel)
+            task = asyncio.create_task(storage.put(object_id, payload))
+            tasks.append(task)
+            channels.append(channel)
+
+        fanout = asyncio.create_task(fanout_iterators(body, *channels))
         try:
-            async for chunk in body:
-                for ch in channels:
-                    await ch.put(chunk)
+            await strict_gather(fanout, *tasks)
         finally:
-            for ch in channels:
-                ch.close()
-
-    async def put(self, object_id: str, body: BytesPayload):
-        channels: List[Channel[bytes]] = [
-            Channel(self.STORE_CHUNKS_BUFFER) for _ in range(len(self))
-        ]
-
-        tasks = [asyncio.create_task(self.__multiplicator(channels, body))]
-
-        for storage, channel in zip(self, channels):
-            tasks.append(
-                asyncio.create_task(
-                    storage.put(object_id, BytesPayload(body.size, channel)),
-                ),
-            )
-
-        try:
-            await asyncio.gather(*tasks)
-        except asyncio.CancelledError:
             for channel in channels:
                 channel.close()
-            raise
 
     def get(self, object_id: str) -> BytesPayload:
         if not self:
@@ -76,5 +81,5 @@ class Storages(Collection[Storage]):
         return self[0].get(object_id)
 
 
-STORAGES = Storages()
+STORAGES = StorageCollection()
 

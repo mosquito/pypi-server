@@ -108,14 +108,14 @@ speedups = ["Brotli", "aiodns", "cchardet"]
 
 [[package]]
 name = "aiomisc"
-version = "17.1.4"
+version = "17.2.2"
 description = "aiomisc - miscellaneous utils for asyncio"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "aiomisc-17.1.4-py3-none-any.whl", hash = "sha256:b5755d65d51dee96db305358bce71d4a51e1ba611de6ba1ea21e4c19f341b511"},
-    {file = "aiomisc-17.1.4.tar.gz", hash = "sha256:bd710dedaa2dcfb87437d6c4ddf260128a27cc466270078e2e0e6bb33e0ba320"},
+    {file = "aiomisc-17.2.2-py3-none-any.whl", hash = "sha256:98c23bbbd243d6fbf560433659a19590a6fea0f9c29228e8d9f7fa49ca0f3379"},
+    {file = "aiomisc-17.2.2.tar.gz", hash = "sha256:7bc13614eb07bd3ce39d49c5ea3357d2c925eeccd1b82dc1c8c3dfb2ab5c567a"},
 ]
 
 [package.dependencies]
@@ -725,5 +725,5 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.9"
-content-hash = "66f5e9bf5bb75dc608d73d89c5306c6c64a09326d4038d20f9a6e0966692eb4a"
+python-versions = "^3.10"
+content-hash = "9b67ae0e54c86961e0b54fbc05ea2b6c6babb874d3c7a78fef1e55100131b22f"

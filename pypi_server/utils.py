@@ -77,6 +77,9 @@ async def fanout_iterators(src: AsyncIterable[T], *dest: Channel[T]) -> None:
         closed: Set[Channel[T]]
         async for item in src:
             closed = set()
+            if not targets:
+                return
+
             for target in targets:
                 if target.closed():
                     closed.add(target)

@@ -17,21 +17,6 @@ from .compat import FAdvice, fadvise, fallocate
 log = logging.getLogger(__name__)
 
 
-def bytes_payload_from_path(path: Path) -> BytesPayload:
-    size = path.stat().st_size
-
-    async def iterator():
-        async with async_open(path, "rb") as afp:
-            await fadvise(afp.fileno(), FAdvice.SEQUENTIAL, length=size)
-
-            chunk = await afp.read(65535)
-            while chunk:
-                yield chunk
-                chunk = await afp.read(65535)
-
-    return BytesPayload(size, iterator())
-
-
 class LocalStorageArguments(Group):
     """
     This plugin store package files to the local filesystem.
@@ -63,8 +48,18 @@ class LocalStorage(Storage):
         oid = uuid.uuid5(uuid.NAMESPACE_OID, object_id).hex
         return self.path / oid[0] / oid[1] / oid[2] / oid[3:]
 
+    @threaded
+    def _mkdir(self, path: Path) -> None:
+        parent = path.parent
+        if parent.is_dir():
+            return
+        parent.mkdir(mode=0o750, parents=True, exist_ok=True)
+
     async def put(self, object_id: str, body: BytesPayload) -> None:
-        async with async_open(self.make_path_from_oid(object_id), "wb") as afp:
+        path = self.make_path_from_oid(object_id)
+        await self._mkdir(path)
+
+        async with async_open(path, "wb") as afp:
             await fallocate(afp.fileno(), size=body.size)
             await fadvise(afp.fileno(), FAdvice.SEQUENTIAL, length=body.size)
 
@@ -72,7 +67,7 @@ class LocalStorage(Storage):
                 await afp.write(chunk)
 
     def get(self, object_id: str) -> BytesPayload:
-        return bytes_payload_from_path(self.make_path_from_oid(object_id))
+        return BytesPayload.from_path(self.make_path_from_oid(object_id))
 
 
 def setup() -> None:

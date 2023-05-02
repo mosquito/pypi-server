@@ -1,10 +1,11 @@
+from typing import Dict
+
 import pytest
 
 from pypi_server import (
     Group, Parser, get_parsed_group, register_parser_group,
     unregister_parser_group,
 )
-from pypi_server.arguments import CURRENT_PARSER, _make_parser
 
 
 class TestCase:
@@ -14,13 +15,8 @@ class TestCase:
     NAME = "test"
 
     @pytest.fixture()
-    def parser(self, request: pytest.FixtureRequest) -> Parser:
-        group = self.ArgumentsGroup()
-        register_parser_group(group, name=self.NAME)
-        request.addfinalizer(lambda: unregister_parser_group(group))
-        parser = _make_parser()
-        CURRENT_PARSER.set(parser)
-        yield parser
+    def parser_groups(self) -> Dict[str, Group]:
+        return {self.NAME: self.ArgumentsGroup()}
 
 
 class TestSimple(TestCase):
