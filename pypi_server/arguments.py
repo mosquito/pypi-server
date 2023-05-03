@@ -1,8 +1,5 @@
 import re
-from typing import (
-    Any, Dict, Optional, Type, TypeVar, MutableMapping,
-    Iterator
-)
+from typing import Any, Dict, Iterator, MutableMapping, Optional, Type, TypeVar
 
 import aiomisc_log
 import argclass
@@ -76,7 +73,7 @@ class ParserBuilder(MutableMapping[str, Group]):
     def _check_locked(self) -> None:
         if self.is_locked:
             raise RuntimeError(
-                f"Can not modify locked {type(self.__class__)}"
+                f"Can not modify locked {type(self.__class__)}",
             )
 
     def __setitem__(self, key: str, group: Group) -> None:
@@ -84,7 +81,7 @@ class ParserBuilder(MutableMapping[str, Group]):
 
         if self.NAME_VALIDATOR.match(key) is None:
             raise ValueError(
-                "Group name must contain underscore-separated words."
+                "Group name must contain underscore-separated words.",
             )
 
         group_type = type(group)
@@ -92,7 +89,7 @@ class ParserBuilder(MutableMapping[str, Group]):
         if group_type in self.__rev_storage or key in self.__storage:
             raise ValueError(
                 f"Group type {type(group)} already "
-                f"registered with name {key!r}"
+                f"registered with name {key!r}",
             )
 
         self.__storage[key] = group

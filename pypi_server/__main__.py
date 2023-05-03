@@ -3,7 +3,7 @@ import asyncio
 import logging
 import os
 from pathlib import Path
-from typing import List, Iterable
+from typing import Iterable, List
 
 import aiomisc
 import aiomisc_log
@@ -11,8 +11,8 @@ from aiomisc.entrypoint import CURRENT_ENTRYPOINT
 
 from pypi_server.storage import STORAGES
 
-from .arguments import ParserBuilder, Parser
-from .plugins import load_plugins, Plugin
+from .arguments import Parser, ParserBuilder
+from .plugins import Plugin, load_plugins
 
 
 def run(*, parser: Parser, plugins: Iterable[Plugin]):
@@ -46,7 +46,7 @@ def main():
         try:
             logging.debug(
                 "Making plugin instance %r instance from plugin %r",
-                plugin, name
+                plugin, name,
             )
             plugin_instance = plugin(parser_builder)
             plugin_instance.setup()

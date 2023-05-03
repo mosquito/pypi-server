@@ -1,14 +1,14 @@
 import logging
 import uuid
 from pathlib import Path
-from typing import Type, Iterable
+from typing import Iterable, Type
 
 import argclass
 from aiomisc import Entrypoint, threaded
 from aiomisc.io import async_open
 
 from pypi_server import (
-    STORAGES, BytesPayload, Group, Storage, PluginWithArguments, Plugin
+    STORAGES, BytesPayload, Group, Plugin, PluginWithArguments, Storage,
 )
 
 from .compat import FAdvice, fadvise, fallocate
@@ -75,7 +75,7 @@ class LocalStoragePlugin(PluginWithArguments):
     parser_group = LocalStorageArguments()
 
     async def on_enabled(
-        self, group: LocalStorageArguments, entrypoint: Entrypoint
+        self, group: LocalStorageArguments, entrypoint: Entrypoint,
     ) -> None:
         if not group.storage_path:
             raise RuntimeError(

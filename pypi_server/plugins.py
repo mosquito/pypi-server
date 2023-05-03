@@ -1,12 +1,13 @@
 import inspect
 import logging
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from types import ModuleType
 from typing import Iterator, Tuple, Type, TypeVar
 
 import aiomisc
 
-from pypi_server.arguments import ParserBuilder, Group
+from pypi_server.arguments import Group, ParserBuilder
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class PluginWithArguments(Plugin, ABC):
 
     @abstractmethod
     async def on_enabled(
-        self, group: T, entrypoint: aiomisc.Entrypoint
+        self, group: T, entrypoint: aiomisc.Entrypoint,
     ) -> None:
         pass
 
@@ -62,7 +63,7 @@ def load_plugins() -> Iterator[Tuple[str, Type[Plugin]]]:
         try:
             module = entry_point.load()
             logger.debug("Trying to load %r %r", entry_point.name, module)
-            for plugin in getattr(module, '__pypi_server_plugins__', ()):
+            for plugin in getattr(module, "__pypi_server_plugins__", ()):
                 yield entry_point.name, plugin
         except:  # noqa
             logger.warning(

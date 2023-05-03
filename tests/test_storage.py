@@ -9,7 +9,8 @@ import pytest
 from aiomisc import threaded_iterable
 
 from pypi_server.storage import BytesPayload, Storage, StorageCollection
-from . import file_hash, async_hash
+
+from . import async_hash, file_hash
 
 
 async def test_bytes_payload(sample_file: Path):

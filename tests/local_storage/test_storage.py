@@ -13,15 +13,15 @@ from .. import file_hash
 
 @pytest.fixture()
 async def plugin(
-    parser_builder: ParserBuilder, entrypoint: Entrypoint, tmp_path
+    parser_builder: ParserBuilder, entrypoint: Entrypoint, tmp_path,
 ) -> LocalStoragePlugin:
     plugin = LocalStoragePlugin(parser_builder)
     plugin.setup()
 
     parser = parser_builder.build()
     parser.parse_args([
-        '--local-storage-enabled',
-        f'--local-storage-storage-path={tmp_path}'
+        "--local-storage-enabled",
+        f"--local-storage-storage-path={tmp_path}",
     ])
     await plugin.run(entrypoint)
     return plugin

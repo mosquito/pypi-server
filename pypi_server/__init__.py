@@ -4,5 +4,5 @@ from .package_metadata import (
     Package, PackageInfo, PackageInfoDownloads, PackageRelease,
     PackageVulnerabilities,
 )
-from .plugins import load_plugins, Plugin, PluginWithArguments
+from .plugins import Plugin, PluginWithArguments, load_plugins
 from .storage import STORAGES, BytesPayload, Storage

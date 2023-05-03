@@ -3,7 +3,7 @@ from typing import Iterable, Type
 from aiomisc import Entrypoint
 from yarl import URL
 
-from pypi_server import Group, PluginWithArguments, Plugin
+from pypi_server import Group, Plugin, PluginWithArguments
 
 
 class PackageProxyArguments(Group):
@@ -23,7 +23,7 @@ class PackageProxyPlugin(PluginWithArguments):
     parser_group = PackageProxyArguments()
 
     async def on_enabled(
-        self, group: PackageProxyArguments, entrypoint: Entrypoint
+        self, group: PackageProxyArguments, entrypoint: Entrypoint,
     ) -> None:
         pass
 

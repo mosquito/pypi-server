@@ -28,7 +28,7 @@ def parser_groups() -> Dict[str, Group]:
 
 @pytest.fixture()
 def parser(
-    parser_builder: ParserBuilder, parser_groups: Dict[str, Group]
+    parser_builder: ParserBuilder, parser_groups: Dict[str, Group],
 ) -> Parser:
     for name, group in parser_groups.items():
         parser_builder[name] = group
