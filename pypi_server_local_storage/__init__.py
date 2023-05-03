@@ -1,14 +1,14 @@
 import logging
 import uuid
 from pathlib import Path
+from typing import Type, Iterable
 
 import argclass
 from aiomisc import Entrypoint, threaded
 from aiomisc.io import async_open
 
 from pypi_server import (
-    STORAGES, BytesPayload, Group, Storage, get_parsed_group,
-    register_parser_group,
+    STORAGES, BytesPayload, Group, Storage, PluginWithArguments, Plugin
 )
 
 from .compat import FAdvice, fadvise, fallocate
@@ -70,24 +70,23 @@ class LocalStorage(Storage):
         return BytesPayload.from_path(self.make_path_from_oid(object_id))
 
 
-def setup() -> None:
-    register_parser_group(
-        LocalStorageArguments(), name="local_storage",
-    )
+class LocalStoragePlugin(PluginWithArguments):
+    parser_name = "local_storage"
+    parser_group = LocalStorageArguments()
+
+    async def on_enabled(
+        self, group: LocalStorageArguments, entrypoint: Entrypoint
+    ) -> None:
+        if not group.storage_path:
+            raise RuntimeError(
+                "LocalStorage has been enabled but storage "
+                "path must be provided.",
+            )
+
+        LocalStorage.CHUNK_SIZE = group.chunk_size
+        storage = LocalStorage(group.storage_path)
+        STORAGES.append(storage)
+        await storage.setup()
 
 
-async def run(_: Entrypoint) -> None:
-    group = get_parsed_group(LocalStorageArguments)
-
-    if not group.enabled:
-        return
-
-    if not group.storage_path:
-        raise RuntimeError(
-            "LocalStorage has been enabled but storage path must be provided.",
-        )
-
-    LocalStorage.CHUNK_SIZE = group.chunk_size
-    storage = LocalStorage(group.storage_path)
-    STORAGES.append(storage)
-    await storage.setup()
+__pypi_server_plugins__: Iterable[Type[Plugin]] = (LocalStoragePlugin,)

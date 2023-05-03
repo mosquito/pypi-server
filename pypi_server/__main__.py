@@ -1,10 +1,9 @@
 import argparse
 import asyncio
-import contextvars
+import logging
 import os
 from pathlib import Path
-from types import ModuleType
-from typing import Dict
+from typing import List, Iterable
 
 import aiomisc
 import aiomisc_log
@@ -12,20 +11,16 @@ from aiomisc.entrypoint import CURRENT_ENTRYPOINT
 
 from pypi_server.storage import STORAGES
 
-from .arguments import CURRENT_PARSER, Parser, make_parser
-from .plugins import setup_plugins
+from .arguments import ParserBuilder, Parser
+from .plugins import load_plugins, Plugin
 
 
-def run(*, parser: Parser, plugins: Dict[str, ModuleType]):
-    CURRENT_PARSER.set(parser)
-    # Config for logging plugins run logs
+def run(*, parser: Parser, plugins: Iterable[Plugin]):
 
     async def prepare():
         entrypoint: aiomisc.Entrypoint = CURRENT_ENTRYPOINT.get()
         await asyncio.gather(
-            *[
-                plugin.run(entrypoint) for plugin in plugins.values()
-            ]
+            *[plugin.run(entrypoint) for plugin in plugins]
         )
 
     with aiomisc.entrypoint(
@@ -45,8 +40,22 @@ def main():
     # Early config for logging plugins setup logs
     aiomisc_log.basic_config()
 
-    plugins = dict(setup_plugins())
-    parser = make_parser(
+    parser_builder = ParserBuilder()
+    plugins: List[Plugin] = []
+    for name, plugin in load_plugins():
+        try:
+            logging.debug(
+                "Making plugin instance %r instance from plugin %r",
+                plugin, name
+            )
+            plugin_instance = plugin(parser_builder)
+            plugin_instance.setup()
+            plugins.append(plugin_instance)
+        except Exception:
+            logging.exception("Failed to load plugin %r", name)
+            continue
+
+    parser_builder.build(
         description=open(Path(__file__).parent / "description.txt").read(),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         config_files=tuple(
@@ -62,8 +71,8 @@ def main():
         ),
         auto_env_var_prefix="PYPI_SERVER_",
     )
-    parser.parse_args()
-    parser.sanitize_env()
 
-    ctx = contextvars.copy_context()
-    ctx.run(run, parser=parser, plugins=plugins)
+    parser_builder.parser.parse_args()
+    parser_builder.parser.sanitize_env()
+
+    run(parser=parser_builder.parser, plugins=plugins)

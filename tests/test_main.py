@@ -27,7 +27,7 @@ async def test_main():
         "sys.argv",
         new_callable=lambda: ["__main__"],
     ), patch("aiomisc.entrypoint", autospec=True) as entrypoint, patch(
-        "pypi_server.plugins.setup_plugins", return_value={},
+        "pypi_server.plugins.load_plugins", return_value={}.items(),
     ):
         loop_mock = MagicMock(spec=asyncio.AbstractEventLoop)
         entrypoint.return_value.__enter__.return_value = loop_mock
@@ -53,7 +53,7 @@ async def test_run(event_loop, request: pytest.FixtureRequest):
         STORAGES.append(AsyncMock())
         request.addfinalizer(STORAGES.clear)
         plugin = AsyncMock()
-        run(parser=MagicMock(), plugins={"foo": plugin})
+        run(parser=MagicMock(), plugins=[plugin])
 
         assert loop_mock.run_until_complete.call_count
         assert loop_mock.run_forever.call_count
@@ -73,7 +73,7 @@ async def test_run_no_storages(event_loop):
         STORAGES.clear()
         plugin = AsyncMock()
         with pytest.raises(RuntimeError):
-            run(parser=MagicMock(), plugins={"foo": plugin})
+            run(parser=MagicMock(), plugins=[plugin])
 
         coroutine = asyncio.ensure_future(
             loop_mock.run_until_complete.mock_calls[0].args[0],

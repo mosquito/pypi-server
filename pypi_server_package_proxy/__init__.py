@@ -1,7 +1,9 @@
+from typing import Iterable, Type
+
 from aiomisc import Entrypoint
 from yarl import URL
 
-from pypi_server import Group, get_parsed_group, register_parser_group
+from pypi_server import Group, PluginWithArguments, Plugin
 
 
 class PackageProxyArguments(Group):
@@ -16,11 +18,14 @@ class PackageProxyArguments(Group):
     connection_limit: int = 100
 
 
-def setup() -> None:
-    register_parser_group(PackageProxyArguments(), name="package_proxy")
+class PackageProxyPlugin(PluginWithArguments):
+    parser_name = "package_proxy"
+    parser_group = PackageProxyArguments()
+
+    async def on_enabled(
+        self, group: PackageProxyArguments, entrypoint: Entrypoint
+    ) -> None:
+        pass
 
 
-async def run(entrypoint: Entrypoint) -> None:
-    group = get_parsed_group(PackageProxyArguments)
-    if not group.enabled:
-        return
+__pypi_server_plugins__: Iterable[Type[Plugin]] = (PackageProxyPlugin,)

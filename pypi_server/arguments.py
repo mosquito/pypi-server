@@ -1,8 +1,8 @@
-import contextvars
 import re
-from typing import Any, Dict, Optional, Type, TypeVar
-
-from weakref import WeakKeyDictionary
+from typing import (
+    Any, Dict, Optional, Type, TypeVar, MutableMapping,
+    Iterator
+)
 
 import aiomisc_log
 import argclass
@@ -57,49 +57,76 @@ class Parser(argclass.Parser):
     )
 
 
-def make_parser_type(**groups: argclass.Group) -> Type[Parser]:
-    groups["log"] = LogGroup(title="Logging options")
-    return type("Parser", (Parser,), groups)     # type: ignore
-
-
-REGISTRY = {}
-_REV_REGISTRY = WeakKeyDictionary()
-_GROUP_NAME_EXP = re.compile(r"(?<!^)(?=[A-Z])")
-
-
-def register_parser_group(group: Group, *, name: str = "") -> None:
-    if not name:
-        name = _GROUP_NAME_EXP.sub("_", group.__class__.__name__).lower()
-
-    name = name.lower()
-
-    if " " in name:
-        raise ValueError(f"Bad parser name {name!r}")
-
-    if name in REGISTRY:
-        raise ValueError(f"Group already registered by {REGISTRY[name]!r}")
-
-    REGISTRY[name] = group
-    _REV_REGISTRY[type(group)] = name
-
-
-def unregister_parser_group(group: Group) -> None:
-    name = _REV_REGISTRY.pop(type(group), None)
-    REGISTRY.pop(name, None)
-
-
-def make_parser(**kwargs) -> Parser:
-    parser_type = make_parser_type(**REGISTRY)
-    return parser_type(**kwargs)
-
-
-CURRENT_PARSER = contextvars.ContextVar("PARSER")
 GROUP = TypeVar("GROUP", bound=Group)
 
 
-def get_parsed_group(group: Type[GROUP]) -> GROUP:
-    group_name = _REV_REGISTRY.get(group)
-    if group_name is None:
-        raise LookupError(f"Group {group!r} was not registered")
-    parser = CURRENT_PARSER.get()
-    return getattr(parser, group_name)
+class ParserBuilder(MutableMapping[str, Group]):
+    NAME_VALIDATOR = re.compile(r"^([a-z][a-z_]*[a-z])$")
+
+    def __init__(self):
+        self.__storage: Dict[str, Group] = {}
+        self.__rev_storage: Dict[Type[Group], str] = {}
+        self.parser_type: Optional[Type[Parser]] = None
+        self.parser: Optional[Parser] = None
+
+    @property
+    def is_locked(self) -> bool:
+        return self.parser_type is not None
+
+    def _check_locked(self) -> None:
+        if self.is_locked:
+            raise RuntimeError(
+                f"Can not modify locked {type(self.__class__)}"
+            )
+
+    def __setitem__(self, key: str, group: Group) -> None:
+        self._check_locked()
+
+        if self.NAME_VALIDATOR.match(key) is None:
+            raise ValueError(
+                "Group name must contain underscore-separated words."
+            )
+
+        group_type = type(group)
+
+        if group_type in self.__rev_storage or key in self.__storage:
+            raise ValueError(
+                f"Group type {type(group)} already "
+                f"registered with name {key!r}"
+            )
+
+        self.__storage[key] = group
+        self.__rev_storage[group_type] = key
+
+    def __delitem__(self, key: str) -> None:
+        self._check_locked()
+        group = self.__storage.pop(key)
+        del self.__rev_storage[type(group)]
+
+    def __getitem__(self, key: str) -> Group:
+        return self.__storage[key]
+
+    def __len__(self) -> int:
+        return len(self.__storage)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.__storage)
+
+    def build_type(self) -> None:
+        self._check_locked()
+        groups = dict(self.__storage)
+        groups["log"] = LogGroup(title="Logging options")
+        self.parser_type = type("Parser", (Parser,), groups)  # type: ignore
+
+    def build(self, **kwargs) -> Parser:
+        if self.parser is not None:
+            return self.parser
+        self.build_type()
+        self.parser = self.parser_type(**kwargs)
+        return self.parser
+
+    def get_parsed_group(self, group: Type[GROUP]) -> GROUP:
+        if self.parser_type is None:
+            raise RuntimeError("Parser not built")
+        group_name = self.__rev_storage[group]
+        return getattr(self.parser, group_name)
