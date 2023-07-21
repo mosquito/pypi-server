@@ -1,5 +1,8 @@
 import asyncio
-from typing import Any, AsyncIterable, Coroutine, Set, TypeVar, Union
+from contextvars import ContextVar
+from typing import (
+    Any, AsyncIterable, Coroutine, Generic, Optional, Set, TypeVar, Union,
+)
 
 from aiochannel import Channel
 
@@ -91,3 +94,22 @@ async def fanout_iterators(src: AsyncIterable[T], *dest: Channel[T]) -> None:
     finally:
         for target in targets:
             target.close()
+
+
+class StrictContextVar(Generic[T]):
+    def __init__(self, name: str, exc: Exception):
+        self.exc: Exception = exc
+        self.context_var: ContextVar = ContextVar(name)
+
+    def get(self) -> T:
+        value: Optional[T] = self.context_var.get(None)
+        if value is None:
+            raise self.exc
+        return value
+
+    def set(self, value: T) -> None:
+        self.context_var.set(value)
+
+    @property
+    def current(self) -> T:
+        return self.get()

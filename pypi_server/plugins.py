@@ -71,3 +71,9 @@ def load_plugins() -> Iterator[Tuple[str, Type[Plugin]]]:
                 exc_info=True,
             )
             continue
+
+
+class ConfigurationError(RuntimeError):
+    def __init__(self, msg: str, hint: str = ""):
+        self.msg = msg
+        self.hint = hint

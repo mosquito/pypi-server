@@ -7,6 +7,17 @@ class PackageInfoDownloads(TypedDict):
     last_week: int
 
 
+class PackageShortInfo(TypedDict):
+    author: str
+    author_email: str
+    downloads: PackageInfoDownloads
+    license: str
+    name: str
+    requires_python: str
+    summary: str
+    version: str
+
+
 class PackageInfo(TypedDict):
     author: str
     author_email: str

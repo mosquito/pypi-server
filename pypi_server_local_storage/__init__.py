@@ -10,6 +10,7 @@ from aiomisc.io import async_open
 from pypi_server import (
     STORAGES, BytesPayload, Group, Plugin, PluginWithArguments, Storage,
 )
+from pypi_server.plugins import ConfigurationError
 
 from .compat import FAdvice, fadvise, fallocate
 
@@ -40,7 +41,7 @@ class LocalStorage(Storage):
     @threaded
     def setup(self) -> None:
         log.info(
-            "Setting up %s with path: %s", self.__class__.__name__, self.path,
+            "Setting up '%s' in: %s", self.__class__.__name__, self.path,
         )
         self.path.mkdir(mode=0o700, parents=True, exist_ok=True)
 
@@ -78,15 +79,20 @@ class LocalStoragePlugin(PluginWithArguments):
         self, group: LocalStorageArguments, entrypoint: Entrypoint,
     ) -> None:
         if not group.storage_path:
-            raise RuntimeError(
-                "LocalStorage has been enabled but storage "
-                "path must be provided.",
+            raise ConfigurationError(
+                msg=(
+                    "LocalStorage has been enabled by "
+                    "\"--local-storage-enabled\" but "
+                    "storage path must be provided"
+                ),
+                hint="Specify '--local-storage-storage-path' option",
             )
 
         LocalStorage.CHUNK_SIZE = group.chunk_size
         storage = LocalStorage(group.storage_path)
-        STORAGES.append(storage)
         await storage.setup()
+
+        STORAGES.current.append(storage)
 
 
 __pypi_server_plugins__: Iterable[Type[Plugin]] = (LocalStoragePlugin,)

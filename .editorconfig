@@ -15,6 +15,12 @@ max_line_length = 79
 
 [*.rst]
 indent_size = 4
+max_line_length = 79
+indent_style = space
+
+[*.md]
+indent_size = 4
+max_line_length = 79
 indent_style = space
 
 [Makefile]

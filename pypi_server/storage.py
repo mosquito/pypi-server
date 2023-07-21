@@ -9,7 +9,7 @@ from aiochannel import Channel
 from aiomisc.io import async_open
 
 from .collection import Collection
-from .utils import fanout_iterators, strict_gather
+from .utils import StrictContextVar, fanout_iterators, strict_gather
 
 
 class BytesPayload:
@@ -22,6 +22,12 @@ class BytesPayload:
             yield chunk
 
     @classmethod
+    def from_iterator(
+        cls, size: int, iterator: AsyncIterable[bytes],
+    ) -> BytesPayload:
+        return cls(size, iterator)
+
+    @classmethod
     def from_path(
         cls, path: Path, chunk_size: int = 65535,
     ) -> BytesPayload:
@@ -31,7 +37,7 @@ class BytesPayload:
                 while chunk:
                     yield chunk
                     chunk = await afp.read(chunk_size)
-        return cls(path.stat().st_size, iterator())
+        return cls.from_iterator(path.stat().st_size, iterator())
 
 
 class Storage(ABC):
@@ -81,5 +87,6 @@ class StorageCollection(Collection[Storage]):
         return self[0].get(object_id)
 
 
-STORAGES = StorageCollection()
-
+STORAGES: StrictContextVar[StorageCollection] = StrictContextVar(
+    "STORAGES", RuntimeError("Storage collection has not been initialized"),
+)
