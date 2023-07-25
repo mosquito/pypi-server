@@ -59,6 +59,7 @@ GROUP = TypeVar("GROUP", bound=Group)
 
 class ParserBuilder(MutableMapping[str, Group]):
     NAME_VALIDATOR = re.compile(r"^([a-z][a-z_]*[a-z])$")
+    PARSER_TYPE: Type[Parser] = Parser
 
     def __init__(self):
         self.__storage: Dict[str, Group] = {}
@@ -113,7 +114,9 @@ class ParserBuilder(MutableMapping[str, Group]):
         self._check_locked()
         groups = dict(self.__storage)
         groups["log"] = LogGroup(title="Logging options")
-        self.parser_type = type("Parser", (Parser,), groups)  # type: ignore
+        self.parser_type = type(        # type: ignore
+            "Parser", (self.PARSER_TYPE,), groups,
+        )
 
     def build(self, **kwargs) -> Parser:
         if self.parser is not None:

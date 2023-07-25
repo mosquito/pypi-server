@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import AsyncIterable, List
 
 from aiochannel import Channel
+from aiomisc import StrictContextVar
 from aiomisc.io import async_open
 
 from .collection import Collection
-from .utils import StrictContextVar, fanout_iterators, strict_gather
+from .utils import fanout_iterators, strict_gather
 
 
 class BytesPayload:

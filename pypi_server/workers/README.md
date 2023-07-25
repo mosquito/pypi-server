@@ -1,5 +1,4 @@
-Modular and expandable PyPI server
-==================================
+# Workers for modular and expandable PyPI server
 
 This program starts the server with all plugins configured.
 
@@ -40,20 +39,5 @@ pool_size = 8
 
 [log]
 level = info
-
-[local_storage]
-enabled = 1
-storage_path = /tmp/pypi-server/storage
-
-[package-proxy]
-enabled = 1
-
-[http]
-enabled = 1
-port = 8080
-
-# run workers in this process 
-[embedded_workers]
-enabled = 1
 ```
 

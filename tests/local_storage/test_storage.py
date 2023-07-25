@@ -16,7 +16,7 @@ async def plugin(
     parser_builder: ParserBuilder, entrypoint: Entrypoint, tmp_path,
 ) -> LocalStoragePlugin:
     plugin = LocalStoragePlugin(parser_builder)
-    plugin.setup()
+    plugin.setup_parser()
 
     parser = parser_builder.build()
     parser.parse_args([

@@ -7,35 +7,21 @@ from pathlib import Path
 
 import aiomisc
 import aiomisc_log
-from aiomisc.entrypoint import CURRENT_ENTRYPOINT
+from aiomisc import CURRENT_ENTRYPOINT
 
-from .argparse_formatter import MarkdownDescriptionRichHelpFormatter
-from .arguments import ParserBuilder
-from .plugins import ConfigurationError, Plugin
-from .storage import STORAGES, StorageCollection
-
-
-def create_collections():
-    STORAGES.set(StorageCollection())
+from .. import ParserBuilder
+from ..argparse_formatter import MarkdownDescriptionRichHelpFormatter
+from ..plugins import ConfigurationError, Plugin
 
 
 def check_config(parser_builder: ParserBuilder):
-    if not STORAGES.get():
-        raise ConfigurationError(
-            msg="No any storage has been enabled",
-            hint="See --help and enable and configure a storage",
-        )
-
-    if not parser_builder.parser.http.enabled:
-        logging.warn("HTTP plugin is not enabled")
+    pass
 
 
 def run():
-    aiomisc_log.basic_config()
     parser_builder, plugins = Plugin.collect_and_setup(
-        "pypi_server",
+        "pypi_server_worker",
     )
-    create_collections()
 
     description_path = (Path(__file__).parent / "README.md")
     with io.StringIO() as description_fp:
@@ -57,14 +43,14 @@ def run():
             filter(
                 None,
                 [
-                    "pypi-server.ini",
-                    "~/.config/pypi-server.ini",
-                    "/etc/pypi-server.ini",
-                    os.getenv("PYPI_SERVER_CONFIG", ""),
+                    "pypi-server-workers.ini",
+                    "~/.config/pypi-server-workers.ini",
+                    "/etc/pypi-server-workers.ini",
+                    os.getenv("PYPI_SERVER_WORKERS_CONFIG", ""),
                 ],
             ),
         ),
-        auto_env_var_prefix="PYPI_SERVER_",
+        auto_env_var_prefix="PYPI_SERVER_WORKERS_",
     )
 
     parser.parse_args()
@@ -81,7 +67,7 @@ def run():
     async def prepare():
         entrypoint: aiomisc.Entrypoint = CURRENT_ENTRYPOINT.get()
         await asyncio.gather(
-            *[plugin.run(entrypoint) for plugin in plugins]
+            *[p.run(entrypoint) for p in plugins]
         )
 
     with aiomisc.entrypoint(
@@ -96,6 +82,7 @@ def run():
 
 def main():
     # Early config for logging plugins setup logs
+    aiomisc_log.basic_config()
     ctx = contextvars.copy_context()
     try:
         ctx.run(run)

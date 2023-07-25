@@ -1,11 +1,12 @@
 import logging
+from pathlib import Path
 from typing import Iterable, Type
 
 import aiohttp.log
 import argclass
 from aiomisc import Entrypoint
 
-from pypi_server import Group, Plugin, PluginWithArguments
+from pypi_server import Group, Plugin
 
 from .service import HTTPService
 
@@ -14,15 +15,12 @@ log = logging.getLogger(__name__)
 
 
 class HTTPArguments(Group):
-    """
-    This plugin is the HTTP server
-    """
-
     __plugin_name__ = "HTTP server plugin"
+    __doc__ = (Path(__file__).parent / "README.md").open().read()
 
-    enabled: bool
+    enabled: bool = False
     address: str = argclass.Argument(
-        "-l", "--http-address", help="HTTP Listen address", default="::"
+        "-l", "--http-address", help="HTTP Listen address", default="::",
     )
     port: int = argclass.Argument(
         "-p", "--http-port", default=8998, help="HTTP Listen port",
@@ -33,9 +31,10 @@ class HTTPArguments(Group):
     ws_log_level = argclass.LogLevel
 
 
-class HTTPPlugin(PluginWithArguments):
+class HTTPPlugin(Plugin):
     parser_name = "http"
     parser_group = HTTPArguments()
+    readme = (Path(__file__).parent / "README.md").open().read()
 
     async def on_enabled(
         self, group: HTTPArguments, entrypoint: Entrypoint,

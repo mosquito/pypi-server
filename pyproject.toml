@@ -33,20 +33,18 @@ classifiers = [
 ]
 packages = [
     {include = "pypi_server"},
-    {include = "pypi_server_local_storage"},
-    {include = "pypi_server_package_proxy"},
-    {include = "pypi_server_http"},
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-aiomisc = {extras = ["aiohttp"], version = "^17.1.4"}
-aiohttp = "3.8.1"
+python = "^3.11"
+aiomisc = {extras = ["aiohttp"], version = "^17.3.21"}
+aiohttp = "^3.8"
 argclass = "^0.9.2"
 aiochannel = "^1.2.1"
 patio = "^0.1.4"
 rich = "^13.4.2"
-rich-argparse = "^1.2.0"
+rich-argparse = "1.2.0"
+aiomisc-dependency = "^0.1.20"
 
 [tool.poetry.group.dev.dependencies]
 aiomisc-pytest = "^1.1.1"
@@ -55,11 +53,18 @@ pytest-subtests = "^0.10.0"
 
 [tool.poetry.scripts]
 pypi-server = "pypi_server.__main__:main"
+pypi-server-workers = "pypi_server.workers.__main__:main"
 
 [tool.poetry.plugins.pypi_server]
-local_storage = "pypi_server_local_storage"
-package_proxy = "pypi_server_package_proxy"
-http = "pypi_server_http"
+local_storage = "pypi_server.local_storage"
+package_proxy = "pypi_server.package_proxy"
+http = "pypi_server.http"
+embedded_worker = "pypi_server.workers.embedded"
+tcp_workers = "pypi_server.workers.tcp"
+
+[tool.poetry.plugins.pypi_server_worker]
+tcp_broker = "pypi_server.workers.tcp"
+package_proxy = "pypi_server.package_proxy"
 
 [build-system]
 requires = ["poetry-core"]

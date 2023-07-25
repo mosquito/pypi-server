@@ -7,9 +7,7 @@ import argclass
 from aiomisc import Entrypoint, threaded
 from aiomisc.io import async_open
 
-from pypi_server import (
-    STORAGES, BytesPayload, Group, Plugin, PluginWithArguments, Storage,
-)
+from pypi_server import STORAGES, BytesPayload, Group, Plugin, Storage
 from pypi_server.plugins import ConfigurationError
 
 from .compat import FAdvice, fadvise, fallocate
@@ -19,10 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class LocalStorageArguments(Group):
-    """
-    This plugin store package files to the local filesystem.
-    """
-
+    __doc__ = (Path(__file__).parent / "README.md").open().read()
     __plugin_name__ = "Local Storage plugin"
 
     enabled: bool
@@ -71,7 +66,7 @@ class LocalStorage(Storage):
         return BytesPayload.from_path(self.make_path_from_oid(object_id))
 
 
-class LocalStoragePlugin(PluginWithArguments):
+class LocalStoragePlugin(Plugin):
     parser_name = "local_storage"
     parser_group = LocalStorageArguments()
 
@@ -92,7 +87,9 @@ class LocalStoragePlugin(PluginWithArguments):
         storage = LocalStorage(group.storage_path)
         await storage.setup()
 
-        STORAGES.current.append(storage)
+        STORAGES.get().append(storage)
 
 
-__pypi_server_plugins__: Iterable[Type[Plugin]] = (LocalStoragePlugin,)
+__pypi_server_plugins__: Iterable[Type[Plugin]] = (
+    LocalStoragePlugin,
+)
