@@ -1,10 +1,13 @@
 import logging
 import ssl
-from typing import Any
+from typing import Any, List
 
 import aiohttp
+from aiomisc.service import Service
 from aiomisc.service.periodic import PeriodicService
 from patio import AbstractBroker
+
+from pypi_server.workers import rpc
 
 from .arguments import PackageProxyArguments
 from .simple_provider import parse_simple_packages
@@ -15,10 +18,26 @@ log = logging.getLogger(__name__)
 
 class PackageProxySyncer(PeriodicService):
     __required__ = ("arguments",)
-    arguments: PackageProxyArguments
+    __dependencies__ = ("patio_broker",)
 
+    arguments: PackageProxyArguments
+    patio_broker: AbstractBroker
+
+    async def callback(self) -> Any:
+        for name in await self.patio_broker.call(
+            "package_proxy.all_packages"
+        ):
+            print(name)
+        print("done")
+
+
+class PackageProxySyncerWorker(Service):
+    __required__ = ("arguments",)
+    __dependencies__ = ("patio_broker",)
+
+    arguments: PackageProxyArguments
     client: aiohttp.ClientSession
-    broker: AbstractBroker
+    patio_broker: AbstractBroker
 
     async def start(self) -> None:
         self.client = aiohttp.ClientSession(
@@ -29,13 +48,8 @@ class PackageProxySyncer(PeriodicService):
             connector_owner=True,
         )
 
-        log.debug("Waiting active broker")
-        self.broker = await self.context["BROKER"]
-        log.debug("done")
-        return await super().start()
+        rpc["package_proxy.all_packages"] = self.parse_all_packages
 
-    async def callback(self) -> Any:
+    async def parse_all_packages(self) -> List[str]:
         url = self.arguments.url.with_path(self.arguments.simple_list_path)
-        async for name, href in parse_simple_packages(url, self.client):
-            print(name, href)
-        print("done")
+        return await parse_simple_packages(url=url, client=self.client)

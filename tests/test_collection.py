@@ -97,7 +97,7 @@ async def test_suites(subtests: SubTests):
         collection[0].failing = False
 
         results = []
-        async for item in collection.stream("get_stream"):
+        async for item in collection._stream("get_stream"):
             results.append(item)
         results.sort()
 
@@ -107,7 +107,7 @@ async def test_suites(subtests: SubTests):
         collection[0].failing = True
 
         with pytest.raises(ValueError):
-            async for _ in collection.stream("get_stream"):
+            async for _ in collection._stream("get_stream"):
                 pass
 
     with subtests.test():
@@ -118,5 +118,5 @@ async def test_suites(subtests: SubTests):
                 await asyncio.sleep(0)
                 yield i
 
-        await collection.fanout("get_sum", iterator(), sum(range(100)))
+        await collection._fanout("get_sum", iterator(), sum(range(100)))
 

@@ -30,6 +30,7 @@ class TCPServerParser(Group):
 
     ssl_key: Optional[Path]
     ssl_cert: Optional[Path]
+    max_workers: int = 32
 
 
 class TCPClientParser(Group):
@@ -46,3 +47,4 @@ class TCPClientParser(Group):
     use_ssl: bool = False
     ssl_key: Optional[Path]
     ssl_cert: Optional[Path]
+    max_workers: int = 32

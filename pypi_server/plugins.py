@@ -1,7 +1,8 @@
 import logging
-from typing import Iterator, List, Tuple, Type, TypeVar
+from typing import Iterator, List, Tuple, Type, TypeVar, Sequence
 
 import aiomisc
+from aiomisc import StrictContextVar
 from aiomisc.compat import entry_pont_iterator
 
 from pypi_server.arguments import Group, ParserBuilder
@@ -31,29 +32,42 @@ class Plugin:
     def setup_parser(self) -> None:
         self.add_parser_group(self.parser_name, self.parser_group)
 
-    async def run(self, entrypoint: aiomisc.Entrypoint) -> None:
-        group = self.get_parsed_group(type(self.parser_group))
-        if not group.enabled:
+    @property
+    def group(self) -> T:
+        return self.get_parsed_group(type(self.parser_group))
+
+    @property
+    def is_enabled(self) -> bool:
+        return self.group.enabled
+
+    async def run_services(self, entrypoint: aiomisc.Entrypoint) -> None:
+        if not self.is_enabled:
             log.debug("Plugin %r not enabled. Skipping.", self)
             return
+        await self.start_services(entrypoint=entrypoint)
 
-        await self.on_enabled(group=group, entrypoint=entrypoint)
+    async def run_workers(self, entrypoint: aiomisc.Entrypoint) -> None:
+        if not self.is_enabled:
+            log.debug("Workers for plugin %r not enabled. Skipping.", self)
+            return
+        await self.start_workers(entrypoint=entrypoint)
 
     def setup(self) -> None:
-        group: T = self.get_parsed_group(type(self.parser_group))
-        if not group.enabled:
+        if not self.is_enabled:
             return
+
         log.debug(
             "Configuring dependencies for %r", self.__class__.__name__,
         )
-        self.declare_dependencies(group)
+        self.declare_dependencies()
 
-    def declare_dependencies(self, group: T) -> None:
+    def declare_dependencies(self) -> None:
         return
 
-    async def on_enabled(
-        self, group: T, entrypoint: aiomisc.Entrypoint,
-    ) -> None:
+    async def start_services(self, entrypoint: aiomisc.Entrypoint) -> None:
+        pass
+
+    async def start_workers(self, entrypoint: aiomisc.Entrypoint) -> None:
         pass
 
     @classmethod
@@ -102,6 +116,11 @@ class Plugin:
                 continue
 
         return parser_builder, plugins
+
+
+PLUGINS: StrictContextVar[Sequence[Plugin]] = StrictContextVar(
+    "PLUGINS", RuntimeError("Plugins has not been collected")
+)
 
 
 class ConfigurationError(RuntimeError):

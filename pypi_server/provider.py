@@ -16,9 +16,9 @@ class PackageProvider(ABC):
     async def package_info(self, package_name: str) -> Package: ...
 
 
-class PackageProviderCollection(Collection[PackageProvider]):
+class PackageProviderCollection(Collection[PackageProvider], PackageProvider):
     def packages(self) -> AsyncIterable[str]:
-        return self.stream("packages")
+        return self._stream("packages")
 
     async def package_info(self, package_name: str) -> Optional[Package]:
         package: Optional[Package]

@@ -36,18 +36,18 @@ class HTTPPlugin(Plugin):
     parser_group = HTTPArguments()
     readme = (Path(__file__).parent / "README.md").open().read()
 
-    async def on_enabled(
-        self, group: HTTPArguments, entrypoint: Entrypoint,
+    async def start_services(
+        self, entrypoint: Entrypoint,
     ) -> None:
-        aiohttp.log.access_logger.setLevel(group.access_log_level)
-        aiohttp.log.server_logger.setLevel(group.server_log_level)
-        aiohttp.log.web_logger.setLevel(group.web_log_level)
-        aiohttp.log.ws_logger.setLevel(group.ws_log_level)
+        aiohttp.log.access_logger.setLevel(self.group.access_log_level)
+        aiohttp.log.server_logger.setLevel(self.group.server_log_level)
+        aiohttp.log.web_logger.setLevel(self.group.web_log_level)
+        aiohttp.log.ws_logger.setLevel(self.group.ws_log_level)
 
         await entrypoint.start_services(
             HTTPService(
-                address=group.address,
-                port=group.port,
+                address=self.group.address,
+                port=self.group.port,
 
             ),
         )

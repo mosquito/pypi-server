@@ -4,12 +4,13 @@ from pathlib import Path
 from typing import Iterable, Type
 
 import argclass
-from aiomisc import Entrypoint, threaded
+from aiomisc import threaded
 from aiomisc.io import async_open
 
-from pypi_server import STORAGES, BytesPayload, Group, Plugin, Storage
+from pypi_server import BytesPayload, Group, Plugin, Storage
 from pypi_server.plugins import ConfigurationError
 
+from ..dependency import strict_dependency
 from .compat import FAdvice, fadvise, fallocate
 
 
@@ -51,6 +52,7 @@ class LocalStorage(Storage):
             return
         parent.mkdir(mode=0o750, parents=True, exist_ok=True)
 
+    # noinspection PyUnresolvedReferences
     async def put(self, object_id: str, body: BytesPayload) -> None:
         path = self.make_path_from_oid(object_id)
         await self._mkdir(path)
@@ -70,26 +72,25 @@ class LocalStoragePlugin(Plugin):
     parser_name = "local_storage"
     parser_group = LocalStorageArguments()
 
-    async def on_enabled(
-        self, group: LocalStorageArguments, entrypoint: Entrypoint,
-    ) -> None:
-        if not group.storage_path:
-            raise ConfigurationError(
-                msg=(
-                    "LocalStorage has been enabled by "
-                    "\"--local-storage-enabled\" but "
-                    "storage path must be provided"
-                ),
-                hint="Specify '--local-storage-storage-path' option",
-            )
+    def declare_dependencies(self) -> None:
 
-        LocalStorage.CHUNK_SIZE = group.chunk_size
-        storage = LocalStorage(group.storage_path)
-        await storage.setup()
+        @strict_dependency
+        async def blob_storage() -> LocalStorage:
+            if not self.group.storage_path:
+                raise ConfigurationError(
+                    msg=(
+                        "LocalStorage has been enabled by "
+                        "\"--local-storage-enabled\" but "
+                        "storage path must be provided"
+                    ),
+                    hint="Specify '--local-storage-storage-path' option",
+                )
 
-        STORAGES.get().append(storage)
+            LocalStorage.CHUNK_SIZE = self.group.chunk_size
+            storage = LocalStorage(self.group.storage_path)
+            # noinspection PyUnresolvedReferences
+            await storage.setup()
+            return storage
 
 
-__pypi_server_plugins__: Iterable[Type[Plugin]] = (
-    LocalStoragePlugin,
-)
+__pypi_server_plugins__: Iterable[Type[Plugin]] = (LocalStoragePlugin,)

@@ -11,21 +11,10 @@ from aiomisc.entrypoint import CURRENT_ENTRYPOINT
 
 from .argparse_formatter import MarkdownDescriptionRichHelpFormatter
 from .arguments import ParserBuilder
-from .plugins import ConfigurationError, Plugin
-from .storage import STORAGES, StorageCollection
-
-
-def create_collections():
-    STORAGES.set(StorageCollection())
+from .plugins import ConfigurationError, Plugin, PLUGINS
 
 
 def check_config(parser_builder: ParserBuilder):
-    if not STORAGES.get():
-        raise ConfigurationError(
-            msg="No any storage has been enabled",
-            hint="See --help and enable and configure a storage",
-        )
-
     if not parser_builder.parser.http.enabled:
         logging.warn("HTTP plugin is not enabled")
 
@@ -35,7 +24,6 @@ def run():
     parser_builder, plugins = Plugin.collect_and_setup(
         "pypi_server",
     )
-    create_collections()
 
     description_path = (Path(__file__).parent / "README.md")
     with io.StringIO() as description_fp:
@@ -78,10 +66,12 @@ def run():
     for plugin in plugins:
         plugin.setup()
 
+    PLUGINS.set(tuple(plugins))
+
     async def prepare():
         entrypoint: aiomisc.Entrypoint = CURRENT_ENTRYPOINT.get()
         await asyncio.gather(
-            *[plugin.run(entrypoint) for plugin in plugins]
+            *[plugin.run_services(entrypoint) for plugin in plugins]
         )
 
     with aiomisc.entrypoint(

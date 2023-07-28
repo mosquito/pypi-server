@@ -11,7 +11,7 @@ from aiomisc import CURRENT_ENTRYPOINT
 
 from .. import ParserBuilder
 from ..argparse_formatter import MarkdownDescriptionRichHelpFormatter
-from ..plugins import ConfigurationError, Plugin
+from ..plugins import ConfigurationError, Plugin, PLUGINS
 
 
 def check_config(parser_builder: ParserBuilder):
@@ -19,9 +19,7 @@ def check_config(parser_builder: ParserBuilder):
 
 
 def run():
-    parser_builder, plugins = Plugin.collect_and_setup(
-        "pypi_server_worker",
-    )
+    parser_builder, plugins = Plugin.collect_and_setup("pypi_server")
 
     description_path = (Path(__file__).parent / "README.md")
     with io.StringIO() as description_fp:
@@ -64,10 +62,12 @@ def run():
     for plugin in plugins:
         plugin.setup()
 
+    PLUGINS.set(tuple(plugins))
+
     async def prepare():
         entrypoint: aiomisc.Entrypoint = CURRENT_ENTRYPOINT.get()
         await asyncio.gather(
-            *[p.run(entrypoint) for p in plugins]
+            *[p.run_workers(entrypoint) for p in plugins]
         )
 
     with aiomisc.entrypoint(

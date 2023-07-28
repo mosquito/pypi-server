@@ -1,6 +1,6 @@
-import io
-import os
-import sys
+from __future__ import annotations
+
+import argparse
 
 import rich.console
 import rich.markdown
@@ -23,13 +23,7 @@ class MarkdownDescriptionRichHelpFormatter(rich_argparse.RichHelpFormatter):
         r"\((?P<args>default: \S+)\)",
     )
 
-    def _rich_format_text(self, text: str) -> rich.text.Text:
-        with io.StringIO() as fp:
-            console = rich.console.Console(
-                file=fp,
-                force_terminal=os.isatty(sys.stdout.fileno()),
-                stderr=True,
-                width=self._width,
-            )
-            console.print(rich.markdown.Markdown(text, hyperlinks=True))
-            return rich.text.Text(fp.getvalue())
+    def add_text(self, text: str | None) -> None:
+        if text is argparse.SUPPRESS or text is None:
+            return
+        self._current_section.rich_items.append(rich.markdown.Markdown(text))

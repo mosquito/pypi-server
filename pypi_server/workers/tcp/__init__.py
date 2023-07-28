@@ -3,11 +3,13 @@ import ssl
 from typing import Iterable, Type
 
 from patio import (
-    AbstractBroker, AbstractExecutor, TCPClientBroker, TCPServerBroker,
+    AbstractBroker, AbstractExecutor, AsyncExecutor, TCPClientBroker,
+    TCPServerBroker,
 )
 
 from pypi_server import Plugin
 from pypi_server.dependency import strict_dependency
+from pypi_server.workers import rpc
 
 from ...plugins import ConfigurationError
 from .arguments import TCPClientParser, TCPServerParser
@@ -20,21 +22,33 @@ class TCPServerWorkersPlugin(Plugin):
     parser_name = "tcp_server"
     parser_group = TCPServerParser()
 
-    def declare_dependencies(self, group: TCPServerParser) -> None:
+    def declare_dependencies(self) -> None:
+        @strict_dependency
+        async def patio_executor() -> AbstractExecutor:
+            executor = AsyncExecutor(rpc, max_workers=self.group.max_workers)
+            await executor.setup()
+
+            try:
+                yield executor
+            finally:
+                await executor.shutdown()
+
         @strict_dependency
         async def patio_broker(
             patio_executor: AbstractExecutor,
         ) -> AbstractBroker:
             ssl_context = None
             if (
-                group.ssl_key and group.ssl_cert
+                self.group.ssl_key and self.group.ssl_cert
             ) and (
-                group.ssl_key.exists() and group.ssl_cert.exists()
+                self.group.ssl_key.exists() and self.group.ssl_cert.exists()
             ):
                 ssl_context = ssl.create_default_context()
-                ssl_context.load_cert_chain(group.ssl_cert, group.ssl_key)
+                ssl_context.load_cert_chain(
+                    self.group.ssl_cert, self.group.ssl_key
+                )
 
-            if not group.listen:
+            if not self.group.listen:
                 raise ConfigurationError(
                     "You must specify at least one listen address",
                     hint=(
@@ -46,12 +60,12 @@ class TCPServerWorkersPlugin(Plugin):
             broker = TCPServerBroker(
                 executor=patio_executor,
                 ssl_context=ssl_context,
-                key=group.key,
+                key=self.group.key,
             )
 
             await broker.setup()
 
-            for address_port in group.listen:
+            for address_port in self.group.listen:
                 log.debug(
                     "Listening %s://%s:%s",
                     "tcp" if not ssl_context else "tls",
@@ -78,24 +92,35 @@ class TCPClientWorkersPlugin(Plugin):
     parser_name = "tcp_client"
     parser_group = TCPClientParser()
 
-    def declare_dependencies(self, group: TCPServerParser) -> None:
+    def declare_dependencies(self) -> None:
+        @strict_dependency
+        async def patio_executor() -> AbstractExecutor:
+            executor = AsyncExecutor(rpc, max_workers=self.group.max_workers)
+            await executor.setup()
+
+            try:
+                yield executor
+            finally:
+                await executor.shutdown()
+
         @strict_dependency
         async def patio_broker(
             patio_executor: AbstractExecutor,
         ) -> AbstractBroker:
             ssl_context = None
-            if group.use_ssl:
+            if self.group.use_ssl:
                 ssl_context = ssl.create_default_context()
                 if (
-                    group.ssl_key and group.ssl_cert
+                    self.group.ssl_key and self.group.ssl_cert
                 ) and (
-                    group.ssl_key.exists() and group.ssl_cert.exists()
+                    self.group.ssl_key.exists() and
+                    self.group.ssl_cert.exists()
                 ):
                     ssl_context.load_cert_chain(
-                        group.ssl_cert, group.ssl_key,
+                        self.group.ssl_cert, self.group.ssl_key,
                     )
 
-            if not group.connect_to:
+            if not self.group.connect_to:
                 raise ConfigurationError(
                     "You must specify at least one server address",
                     hint=(
@@ -107,12 +132,12 @@ class TCPClientWorkersPlugin(Plugin):
             broker = TCPClientBroker(
                 executor=patio_executor,
                 ssl_context=ssl_context,
-                key=group.key,
+                key=self.group.key,
             )
 
             await broker.setup()
 
-            for address_port in group.connect_to:
+            for address_port in self.group.connect_to:
                 log.info(
                     "Adding peer %s://%s:%s",
                     "tcp" if not ssl_context else "tls",

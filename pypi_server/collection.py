@@ -37,7 +37,7 @@ class Collection(MutableSequence[T]):
         ]
         return await strict_gather(*futures)
 
-    async def stream(
+    async def _stream(
         self, method: str, *args: Any, **kwargs: Any
     ) -> AsyncIterable[R]:
         iterators = [getattr(item, method)(*args, **kwargs) for item in self]
@@ -46,7 +46,7 @@ class Collection(MutableSequence[T]):
         ):
             yield item
 
-    async def fanout(
+    async def _fanout(
         self, method: str,
         iterator: Union[AsyncIterable[R]],
         *args: Any, **kwargs: Any,

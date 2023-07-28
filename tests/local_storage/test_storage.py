@@ -23,7 +23,7 @@ async def plugin(
         "--local-storage-enabled",
         f"--local-storage-storage-path={tmp_path}",
     ])
-    await plugin.run(entrypoint)
+    await plugin.run_services(entrypoint)
     return plugin
 
 
