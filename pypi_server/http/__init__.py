@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Iterable, Type
 
 import aiohttp.log
+import aiomisc
 import argclass
 from aiomisc import Entrypoint
 
@@ -36,21 +37,15 @@ class HTTPPlugin(Plugin):
     parser_group = HTTPArguments()
     readme = (Path(__file__).parent / "README.md").open().read()
 
-    async def start_services(
-        self, entrypoint: Entrypoint,
-    ) -> None:
+    async def start_services(self) -> Iterable[aiomisc.Service]:
         aiohttp.log.access_logger.setLevel(self.group.access_log_level)
         aiohttp.log.server_logger.setLevel(self.group.server_log_level)
         aiohttp.log.web_logger.setLevel(self.group.web_log_level)
         aiohttp.log.ws_logger.setLevel(self.group.ws_log_level)
 
-        await entrypoint.start_services(
-            HTTPService(
-                address=self.group.address,
-                port=self.group.port,
-
-            ),
-        )
+        return [
+            HTTPService(address=self.group.address, port=self.group.port)
+        ]
 
 
 __pypi_server_plugins__: Iterable[Type[Plugin]] = (HTTPPlugin,)

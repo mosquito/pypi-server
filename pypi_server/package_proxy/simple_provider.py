@@ -50,3 +50,4 @@ async def parse_simple_packages(
             parser.feed(line.decode(encoding))
 
         return result
+

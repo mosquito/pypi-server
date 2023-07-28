@@ -1,6 +1,6 @@
 from typing import Iterable, Type
 
-from aiomisc import Entrypoint
+from aiomisc import Entrypoint, Service
 
 from pypi_server import Plugin
 
@@ -14,19 +14,17 @@ class PackageProxyPlugin(Plugin):
     parser_name = "package_proxy"
     parser_group = PARSER_GROUP
 
-    async def start_services(self, entrypoint: Entrypoint) -> None:
-        await entrypoint.start_services(
+    async def start_services(self) -> Iterable[Service]:
+        return [
             PackageProxySyncer(
                 interval=self.group.refresh_interval,
                 delay=self.group.refresh_delay,
                 arguments=self.group,
-            ),
-        )
+            )
+        ]
 
-    async def start_workers(self, entrypoint: Entrypoint) -> None:
-        await entrypoint.start_services(
-            PackageProxySyncerWorker(arguments=self.group),
-        )
+    async def start_workers(self) -> Iterable[Service]:
+        return [PackageProxySyncerWorker(arguments=self.group)]
 
 
 __pypi_server_plugins__: Iterable[Type[Plugin]] = (PackageProxyPlugin,)

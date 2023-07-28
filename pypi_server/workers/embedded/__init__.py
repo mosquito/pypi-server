@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Iterable, Type
 
-from aiomisc import Entrypoint
+from aiomisc import Entrypoint, Service
 from patio import AbstractBroker, AbstractExecutor, AsyncExecutor, MemoryBroker
 
 from pypi_server import Group, Plugin
@@ -58,7 +58,10 @@ class EmbeddedWorkersPlugin(Plugin):
         log.debug("Running workers for plugin: %r", plugin)
         await plugin.run_workers(entrypoint)
 
-    async def start_services(self, entrypoint: Entrypoint) -> None:
+    async def run_services(self, entrypoint: Entrypoint) -> None:
+        if not self.is_enabled:
+            return
+
         tasks = set()
         loop = asyncio.get_running_loop()
 

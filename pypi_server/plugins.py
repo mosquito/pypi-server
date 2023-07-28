@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator, List, Tuple, Type, TypeVar, Sequence
+from typing import Iterator, List, Tuple, Type, TypeVar, Sequence, Iterable
 
 import aiomisc
 from aiomisc import StrictContextVar
@@ -44,13 +44,21 @@ class Plugin:
         if not self.is_enabled:
             log.debug("Plugin %r not enabled. Skipping.", self)
             return
-        await self.start_services(entrypoint=entrypoint)
+        services = await self.start_services()
+        if not services:
+            log.debug("Plugin %r not provide services.", self)
+            return
+        await entrypoint.start_services(*services)
 
     async def run_workers(self, entrypoint: aiomisc.Entrypoint) -> None:
         if not self.is_enabled:
             log.debug("Workers for plugin %r not enabled. Skipping.", self)
             return
-        await self.start_workers(entrypoint=entrypoint)
+        workers = await self.start_workers()
+        if not workers:
+            log.debug("Plugin %r not provide workers.", self)
+            return
+        await entrypoint.start_services(*workers)
 
     def setup(self) -> None:
         if not self.is_enabled:
@@ -64,11 +72,11 @@ class Plugin:
     def declare_dependencies(self) -> None:
         return
 
-    async def start_services(self, entrypoint: aiomisc.Entrypoint) -> None:
-        pass
+    async def start_services(self) -> Iterable[aiomisc.Service]:
+        return ()
 
-    async def start_workers(self, entrypoint: aiomisc.Entrypoint) -> None:
-        pass
+    async def start_workers(self) -> Iterable[aiomisc.Service]:
+        return ()
 
     @classmethod
     def collect(
