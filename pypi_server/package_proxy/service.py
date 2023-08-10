@@ -52,4 +52,4 @@ class PackageProxySyncerWorker(Service):
 
     async def parse_all_packages(self) -> List[str]:
         url = self.arguments.url.with_path(self.arguments.simple_list_path)
-        return await parse_simple_packages(url=url, client=self.client)
+        return await parse_simple_packages(pypi_url=url, client=self.client)

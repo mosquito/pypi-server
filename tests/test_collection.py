@@ -68,24 +68,24 @@ async def test_suites(subtests: SubTests):
         assert collection[0:2] == plugins[0:2]
 
     with subtests.test():
-        ids = await collection.gather("get_id")
+        ids = await collection._gather("get_id")
         assert set(ids) == set(id(plugin) for plugin in plugins)
 
     with subtests.test():
-        assert await collection.gather("wait_state")
+        assert await collection._gather("wait_state")
         collection[0].failing = True
 
         with pytest.raises(ValueError):
-            assert await collection.gather("wait_state")
+            assert await collection._gather("wait_state")
 
         collection[0].failing = False
-        assert await collection.gather("wait_state")
+        assert await collection._gather("wait_state")
 
     with subtests.test():
         collection[0].failing = True
 
         with pytest.raises(ValueError):
-            assert await collection.gather("wait_forever")
+            assert await collection._gather("wait_forever")
 
         for item in collection[1:]:
             assert item.future.done()

@@ -37,6 +37,8 @@ async def strict_gather(
 def join_iterators(
     *iterators: AsyncIterable[T], stream_buffer: int = 128
 ) -> AsyncIterable[T]:
+    """Collects results from all members into one AsyncIterable[Any]"""
+
     results: Channel[T] = Channel(stream_buffer)
     tasks: Set[asyncio.Task] = set()
 
